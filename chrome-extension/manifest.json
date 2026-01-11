@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "Open in Default Browser",
+  "version": "1.0.0",
+  "description": "Open links in your system's default browser via right-click context menu",
+  "permissions": ["contextMenus", "nativeMessaging"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "48": "icon48.png",
+    "128": "icon128.png"
+  }
+}

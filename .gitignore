@@ -1,0 +1,32 @@
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Build artifacts
+*.zip
+*.tar.gz
+*.dmg
+release-package/
+companion-app/build/
+
+# Node.js (if added later)
+node_modules/
+npm-debug.log*
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Temporary files
+*.tmp
+*.log
+
+# Native host compiled binary (regenerate with: bun build --compile)
+native-host/host-binary
+
+# submission
+SUBMISSION_CHECKLIST.md
