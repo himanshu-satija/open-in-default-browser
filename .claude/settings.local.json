@@ -2,7 +2,11 @@
   "permissions": {
     "allow": [
       "Bash(mkdir:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(./build.sh:*)",
+      "Bash(xcode-select:*)",
+      "Bash(swiftc:*)",
+      "Bash(xcrun --show-sdk-path:*)"
     ]
   }
 }

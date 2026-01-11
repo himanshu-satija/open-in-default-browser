@@ -162,6 +162,40 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for:
 - Architecture details
 - Contributing guidelines
 
+### Documentation Guidelines
+
+**IMPORTANT:** When making changes that affect how developers work with the project, always update the documentation:
+
+1. **Update DEVELOPMENT.md** when changes affect:
+   - Build process or tooling
+   - Installation/setup procedures
+   - Testing workflows
+   - New scripts or tools added to the project
+   - Architecture or component interactions
+
+2. **Update native-host/README.md** when changes affect:
+   - Native host building
+   - Native messaging protocol
+   - Testing the native host directly
+
+3. **Update README.md** when changes affect:
+   - User-facing installation steps
+   - How to use the extension
+   - System requirements
+
+4. **Examples of changes requiring documentation updates:**
+   - Adding new scripts (like `install-dev.sh`)
+   - Changing build commands or flags
+   - Adding new dependencies or requirements
+   - Modifying the companion app installation flow
+   - Changes to native messaging protocol or manifest
+
+5. **Keep documentation consistent:**
+   - Use the same terminology across all docs
+   - Cross-reference related sections
+   - Include examples for complex procedures
+   - Update troubleshooting sections with new common issues
+
 ## Release Process
 
 See [PACKAGING.md](PACKAGING.md) for:

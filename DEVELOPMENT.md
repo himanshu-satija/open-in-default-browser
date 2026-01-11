@@ -71,13 +71,43 @@ This compiles the Swift code and creates `build/Open in Default Browser.app`
 2. Enable "Developer mode" (toggle in top-right corner)
 3. Click "Load unpacked"
 4. Select the `chrome-extension` folder from this project
-5. Note the Extension ID
+5. **Copy the Extension ID** (32-character string shown under the extension name)
 
-### Step 4: Install with Companion App
+**Note:** When testing with an unpacked extension, use `install-dev.sh` (see Step 4, Option A) instead of the companion app, as the companion app can only detect extensions installed from the Chrome Web Store.
 
-1. Launch the app: `open "companion-app/build/Open in Default Browser.app"`
-2. Click "Install" from the menu bar icon
-3. The app will automatically detect your Chrome extension and set everything up
+### Step 4: Install Native Host for Development
+
+Choose one of the following options based on your testing needs:
+
+#### Option A: Using install-dev.sh (Recommended for local testing)
+
+This is the easiest way to test with an unpacked extension in developer mode:
+
+1. Get your Extension ID from `chrome://extensions/` (you copied this in Step 3)
+2. Run the installation script:
+   ```bash
+   ./install-dev.sh YOUR_EXTENSION_ID
+   ```
+3. The script will:
+   - Validate the extension ID format
+   - Copy the native host binary to the correct location
+   - Create the native messaging manifest with your extension ID
+   - Set proper permissions
+
+**To uninstall:**
+```bash
+rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/open-in-default-browser-host
+rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
+```
+
+#### Option B: Using Companion App (For testing production flow)
+
+If you want to test the full production installation experience:
+
+1. **Note:** This only works with extensions installed from the Chrome Web Store, not unpacked extensions
+2. Launch the app: `open "companion-app/build/Open in Default Browser.app"`
+3. Click "Install" from the menu bar icon
+4. The app will automatically detect your Chrome extension and set everything up
 
 ### Step 5: Test
 
@@ -101,13 +131,11 @@ This compiles the Swift code and creates `build/Open in Default Browser.app`
    ```bash
    cd native-host
    bun build --compile --minify --sourcemap ./host.js --outfile host-binary
+   cd ..
    ```
-3. Rebuild the companion app to bundle the new binary:
-   ```bash
-   cd companion-app
-   ./build.sh
-   ```
-4. Reinstall using the companion app
+3. Reinstall:
+   - **If using install-dev.sh:** Run `./install-dev.sh YOUR_EXTENSION_ID`
+   - **If testing companion app:** Rebuild it with `cd companion-app && ./build.sh` and reinstall using the app
 
 ### Modifying the Companion App
 
@@ -120,6 +148,34 @@ This compiles the Swift code and creates `build/Open in Default Browser.app`
 3. Test: `open "build/Open in Default Browser.app"`
 
 ## Testing
+
+### Test the Full Extension Flow
+
+This is the recommended way to test the complete functionality:
+
+1. **Build the native host** (if not already built):
+   ```bash
+   cd native-host
+   bun build --compile --minify --sourcemap ./host.js --outfile host-binary
+   cd ..
+   ```
+
+2. **Load extension in Chrome:**
+   - Open `chrome://extensions/`
+   - Enable "Developer mode"
+   - Click "Load unpacked" and select `chrome-extension` folder
+   - Copy the Extension ID
+
+3. **Install native host:**
+   ```bash
+   ./install-dev.sh YOUR_EXTENSION_ID
+   ```
+
+4. **Test it:**
+   - Open any webpage in Chrome
+   - Right-click on a link
+   - Select "Open in default browser"
+   - Verify the URL opens in your default browser
 
 ### Test the Native Host Directly
 
@@ -152,6 +208,64 @@ if let id = detector.detectExtensionID() {
 '
 ```
 
+## Development Workflow
+
+For iterative development and testing:
+
+### Making Changes to the Extension
+
+1. **Edit** files in `chrome-extension/` (e.g., `background.js`, `manifest.json`)
+2. **Reload** the extension:
+   - Go to `chrome://extensions/`
+   - Click the reload icon on "Open in Default Browser"
+3. **Test** immediately - no reinstallation needed
+
+### Making Changes to the Native Host
+
+1. **Edit** `native-host/host.js`
+2. **Rebuild** the binary:
+   ```bash
+   cd native-host
+   bun build --compile --minify --sourcemap ./host.js --outfile host-binary
+   cd ..
+   ```
+3. **Reinstall** the host:
+   ```bash
+   ./install-dev.sh YOUR_EXTENSION_ID
+   ```
+   (This copies the new binary to the correct location)
+4. **Test** your changes
+
+### Tips for Faster Iteration
+
+- **Keep your Extension ID handy** - save it in a file or shell variable:
+  ```bash
+  EXTENSION_ID="abcdefghijklmnopqrstuvwxyz123456"
+  ./install-dev.sh $EXTENSION_ID
+  ```
+
+- **Restart Chrome** if the extension seems stuck or not responding to changes
+
+- **Check Chrome's extension logs** for errors:
+  - Go to `chrome://extensions/`
+  - Click "Inspect views: service worker" under your extension
+  - Check the console for errors
+
+- **Test native host directly** to debug native messaging issues (see "Test the Native Host Directly" section)
+
+### Quick Reinstall
+
+If you need to completely reinstall:
+
+```bash
+# Uninstall
+rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/open-in-default-browser-host
+rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
+
+# Reinstall
+./install-dev.sh YOUR_EXTENSION_ID
+```
+
 ## Troubleshooting
 
 ### Build Errors
@@ -166,6 +280,11 @@ if let id = detector.detectExtensionID() {
 **"host-binary not found"**
 - Build the native host first: `cd native-host && bun build --compile ./host.js --outfile host-binary`
 
+**"Extension ID should be exactly 32 characters long"** (when running install-dev.sh)
+- Make sure you copied the full Extension ID from `chrome://extensions/`
+- The ID should look like: `abcdefghijklmnopqrstuvwxyz123456`
+- Don't include quotes or extra spaces
+
 ### Extension Not Working
 
 1. **Check Chrome extension console:**
@@ -174,25 +293,41 @@ if let id = detector.detectExtensionID() {
    - Click "Inspect views: service worker"
    - Look for error messages
 
-2. **Verify companion app installed correctly:**
+2. **Verify native host is installed:**
+   ```bash
+   ls -la ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/
+   # Should show com.openindefaultbrowser.host.json and open-in-default-browser-host
+   ```
+   - If files are missing, reinstall: `./install-dev.sh YOUR_EXTENSION_ID`
+
+3. **Check manifest file has correct extension ID:**
+   ```bash
+   cat ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
+   ```
+   - The `allowed_origins` should match your extension ID
+   - If incorrect, reinstall with the correct ID
+
+4. **Verify companion app installed correctly** (if using companion app instead of install-dev.sh):
    - Open the app and check it says "✓ Installed"
    - If not, click "Install" again
    - If install fails, check if the Chrome extension was detected:
      - The app should show an error if extension isn't found
      - Make sure the extension is loaded and enabled in Chrome
+     - Note: Companion app only works with Web Store extensions, not unpacked ones
 
-3. **Try reinstalling:**
-   - Click "Uninstall" in the companion app
-   - Quit and relaunch the companion app
-   - Click "Install" again
-   - This recreates all necessary files automatically
-
-4. **Advanced debugging (optional):**
-   ```bash
-   # Verify native messaging host was installed
-   ls -la ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/
-   # Should show com.openindefaultbrowser.host.json and open-in-default-browser-host
-   ```
+5. **Try reinstalling:**
+   - **If using install-dev.sh:**
+     ```bash
+     # Uninstall
+     rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/open-in-default-browser-host
+     rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
+     # Reinstall
+     ./install-dev.sh YOUR_EXTENSION_ID
+     ```
+   - **If using companion app:**
+     - Click "Uninstall" in the companion app
+     - Quit and relaunch the companion app
+     - Click "Install" again
 
 ## Architecture Details
 

@@ -21,9 +21,13 @@ mkdir -p "$RESOURCES_DIR"
 
 # Compile Swift sources
 echo "Compiling Swift sources..."
+# Detect architecture automatically
+ARCH=$(uname -m)
+SDK_PATH=$(xcrun --show-sdk-path)
 swiftc -O \
     -swift-version 5 \
-    -target x86_64-apple-macos10.15 \
+    -target ${ARCH}-apple-macos10.15 \
+    -sdk "$SDK_PATH" \
     -module-name OpenInDefaultBrowser \
     Sources/*.swift \
     -o "$MACOS_DIR/$APP_NAME"

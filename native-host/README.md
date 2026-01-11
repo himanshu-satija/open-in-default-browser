@@ -21,6 +21,50 @@ bun build --compile --minify --sourcemap ./host.js --outfile host-binary
 
 The resulting `host-binary` file is a standalone executable (~60MB) that includes the Bun runtime and has zero external dependencies.
 
+## Development Testing
+
+For local development and testing with an unpacked Chrome extension:
+
+### Quick Setup
+
+Use the `install-dev.sh` script from the project root to automatically install the native host:
+
+```bash
+# From the project root directory
+../install-dev.sh YOUR_EXTENSION_ID
+```
+
+The script will:
+- Copy `host-binary` to the Chrome NativeMessagingHosts directory
+- Create the manifest file with your extension ID
+- Set proper permissions
+
+### Getting Your Extension ID
+
+1. Open `chrome://extensions/` in Chrome
+2. Enable "Developer mode"
+3. Load the extension unpacked
+4. Copy the 32-character Extension ID
+
+### Manual Testing
+
+You can test the native host directly using the native messaging protocol:
+
+```bash
+echo '{"url":"https://example.com"}' | node -e '
+const msg = require("fs").readFileSync(0, "utf-8");
+const msgBuf = Buffer.from(msg);
+const header = Buffer.alloc(4);
+header.writeUInt32LE(msgBuf.length, 0);
+process.stdout.write(header);
+process.stdout.write(msgBuf);
+' | ./host-binary
+```
+
+Should return `{"success":true}` and open example.com in your default browser.
+
+For complete development workflow and troubleshooting, see [../DEVELOPMENT.md](../DEVELOPMENT.md).
+
 ## How It Works
 
 The native messaging host:
