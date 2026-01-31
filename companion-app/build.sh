@@ -36,6 +36,11 @@ swiftc -O \
 echo "Copying host binary..."
 cp ../native-host/host-binary "$RESOURCES_DIR/"
 
+# Copy tray icons to MacOS directory (same directory as executable)
+echo "Copying tray icons..."
+cp Sources/tray-icon-22.png "$MACOS_DIR/"
+cp Sources/tray-icon-44.png "$MACOS_DIR/"
+
 # Create Info.plist
 echo "Creating Info.plist..."
 cat > "$CONTENTS_DIR/Info.plist" << 'EOF'

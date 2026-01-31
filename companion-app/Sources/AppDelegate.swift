@@ -10,10 +10,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
 
         if let button = statusItem?.button {
-            // Use SF Symbol for the menu bar icon
-            if #available(macOS 11.0, *) {
-                button.image = NSImage(systemSymbolName: "safari", accessibilityDescription: "Open in Default Browser")
+            // Load custom tray icon
+            if let image = loadTrayIcon() {
+                image.isTemplate = true  // Enable automatic dark/light mode tinting
+                button.image = image
             } else {
+                // Fallback to emoji if custom icon fails to load
                 button.title = "🌐"
             }
         }
@@ -128,5 +130,25 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         alert.alertStyle = .informational
         alert.addButton(withTitle: "OK")
         alert.runModal()
+    }
+
+    func loadTrayIcon() -> NSImage? {
+        // Get the directory where the app binary is located
+        let executablePath = Bundle.main.executablePath ?? ""
+        let executableDir = (executablePath as NSString).deletingLastPathComponent
+
+        // Try to load the @2x version first for retina displays
+        let icon2xPath = (executableDir as NSString).appendingPathComponent("tray-icon-44.png")
+        let icon1xPath = (executableDir as NSString).appendingPathComponent("tray-icon-22.png")
+
+        if let image = NSImage(contentsOfFile: icon2xPath) {
+            image.size = NSSize(width: 22, height: 22)
+            return image
+        } else if let image = NSImage(contentsOfFile: icon1xPath) {
+            image.size = NSSize(width: 22, height: 22)
+            return image
+        }
+
+        return nil
     }
 }
