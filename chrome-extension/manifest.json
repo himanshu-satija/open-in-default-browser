@@ -3,7 +3,7 @@
   "name": "Open in Default Browser",
   "version": "1.0.0",
   "description": "Open links in your system's default browser via right-click context menu",
-  "permissions": ["contextMenus", "nativeMessaging"],
+  "permissions": ["contextMenus", "nativeMessaging", "notifications"],
   "background": {
     "service_worker": "background.js"
   },
