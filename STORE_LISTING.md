@@ -80,3 +80,4 @@ This extension serves a single purpose: allowing users to open links in their sy
 ### Permissions Justification
 - **contextMenus**: Required to add the "Open in default browser" option to the right-click menu
 - **nativeMessaging**: Required to communicate with the companion app that opens URLs in the default browser
+- **notifications**: Required to show error messages if the companion app is not installed or if something goes wrong

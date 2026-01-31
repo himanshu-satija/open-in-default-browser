@@ -1,6 +1,6 @@
 # Privacy Policy for Open in Default Browser
 
-**Last Updated:** December 2024
+**Last Updated:** January 2026
 
 ## Overview
 
@@ -11,6 +11,7 @@ Open in Default Browser is a Chrome extension that allows users to open links in
 **This extension does NOT collect, store, or transmit any user data.**
 
 Specifically:
+
 - We do not collect browsing history
 - We do not collect personal information
 - We do not collect URLs you click on
@@ -21,6 +22,7 @@ Specifically:
 ## How the Extension Works
 
 1. When you right-click on a link and select "Open in default browser", the extension:
+
    - Receives the URL of the link you clicked
    - Sends the URL to a locally-installed companion app on your computer
    - The companion app opens the URL in your system's default browser
@@ -34,12 +36,19 @@ Specifically:
 The extension requests the following permissions:
 
 ### contextMenus
+
 - **Purpose:** To add the "Open in default browser" option to the right-click menu on links
 - **Data Access:** None. This permission only allows creating menu items.
 
 ### nativeMessaging
+
 - **Purpose:** To communicate with the locally-installed companion app that opens URLs in your default browser
 - **Data Access:** The extension only sends URLs to the local companion app. No data is sent to external servers.
+
+### notifications
+
+- **Purpose:** To display error messages when something goes wrong (e.g., companion app not installed)
+- **Data Access:** None. Notifications only display locally on your computer and are not sent anywhere.
 
 ## Third-Party Services
 
