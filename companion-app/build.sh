@@ -32,14 +32,38 @@ swiftc -O \
     Sources/*.swift \
     -o "$MACOS_DIR/$APP_NAME"
 
+# Generate app icon
+echo "Generating app icon..."
+ICONSET_DIR="build/AppIcon.iconset"
+mkdir -p "$ICONSET_DIR"
+
+# Generate all required icon sizes using sips
+sips -z 16 16 Sources/AppIcon.png --out "$ICONSET_DIR/icon_16x16.png" > /dev/null 2>&1
+sips -z 32 32 Sources/AppIcon.png --out "$ICONSET_DIR/icon_16x16@2x.png" > /dev/null 2>&1
+sips -z 32 32 Sources/AppIcon.png --out "$ICONSET_DIR/icon_32x32.png" > /dev/null 2>&1
+sips -z 64 64 Sources/AppIcon.png --out "$ICONSET_DIR/icon_32x32@2x.png" > /dev/null 2>&1
+sips -z 128 128 Sources/AppIcon.png --out "$ICONSET_DIR/icon_128x128.png" > /dev/null 2>&1
+sips -z 256 256 Sources/AppIcon.png --out "$ICONSET_DIR/icon_128x128@2x.png" > /dev/null 2>&1
+sips -z 256 256 Sources/AppIcon.png --out "$ICONSET_DIR/icon_256x256.png" > /dev/null 2>&1
+sips -z 512 512 Sources/AppIcon.png --out "$ICONSET_DIR/icon_256x256@2x.png" > /dev/null 2>&1
+sips -z 512 512 Sources/AppIcon.png --out "$ICONSET_DIR/icon_512x512.png" > /dev/null 2>&1
+sips -z 1024 1024 Sources/AppIcon.png --out "$ICONSET_DIR/icon_512x512@2x.png" > /dev/null 2>&1
+
+# Convert iconset to icns
+iconutil -c icns "$ICONSET_DIR" -o "$RESOURCES_DIR/AppIcon.icns"
+
+# Clean up iconset
+rm -rf "$ICONSET_DIR"
+
 # Copy host binary to Resources
 echo "Copying host binary..."
 cp ../native-host/host-binary "$RESOURCES_DIR/"
 
-# Copy tray icons to MacOS directory (same directory as executable)
-echo "Copying tray icons..."
+# Copy tray icons and alert logo to MacOS directory (same directory as executable)
+echo "Copying icons..."
 cp Sources/tray-icon-22.png "$MACOS_DIR/"
 cp Sources/tray-icon-44.png "$MACOS_DIR/"
+cp Sources/logo-64.png "$MACOS_DIR/"
 
 # Create Info.plist
 echo "Creating Info.plist..."
@@ -68,6 +92,8 @@ cat > "$CONTENTS_DIR/Info.plist" << 'EOF'
     <true/>
     <key>NSHumanReadableCopyright</key>
     <string>Copyright © 2025 Himanshu Satija. All rights reserved.</string>
+    <key>CFBundleIconFile</key>
+    <string>AppIcon</string>
 </dict>
 </plist>
 EOF

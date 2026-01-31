@@ -38,8 +38,9 @@ Install from the Chrome Web Store: [Link will be added after publishing]
 2. **Open the DMG file**
 3. **Drag "Open in Default Browser.app"** to your Applications folder
 4. **Launch the app** from Applications
-5. **Click "Install"** from the menu bar icon
-6. Done! The app will automatically detect your Chrome extension and configure everything.
+5. **A welcome message will appear** - click "Show Menu" to continue
+6. **Click "Install Native Host"** from the menu
+7. Done! The app will automatically detect your Chrome extension and configure everything.
 
 ## Usage
 
@@ -59,9 +60,9 @@ Install from the Chrome Web Store: [Link will be added after publishing]
 - Make sure the extension is installed and enabled in `chrome://extensions/`
 
 ### Clicking the option does nothing
-- Make sure you've installed the companion app and clicked "Install" in the menu bar
+- Make sure you've installed the companion app and clicked "Install Native Host" in the menu bar
 - Open the companion app from Applications and check if it says "✓ Installed"
-- If not installed, click "Install" from the menu bar icon
+- If not installed, click "Install Native Host" from the menu bar icon
 - Check the Chrome extension console for errors:
   1. Go to `chrome://extensions/`
   2. Click "Details" on this extension
@@ -80,7 +81,7 @@ Install from the Chrome Web Store: [Link will be added after publishing]
 
 1. **Uninstall from the companion app:**
    - Open the app from menu bar
-   - Click "Uninstall"
+   - Click "Uninstall Native Host"
    - Quit the app
    - Delete the app from Applications
 

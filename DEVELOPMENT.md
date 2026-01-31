@@ -27,11 +27,15 @@ This project consists of three components:
 ├── companion-app/
 │   ├── Sources/
 │   │   ├── main.swift            # App entry point
-│   │   ├── AppDelegate.swift     # Menu bar UI
+│   │   ├── AppDelegate.swift     # Menu bar UI & welcome alert
 │   │   ├── ChromeDetector.swift  # Auto-detects Chrome extension ID
-│   │   └── InstallManager.swift  # Handles install/uninstall
-│   ├── build.sh              # Builds the .app bundle
-│   ├── create-dmg.sh         # Creates DMG for distribution
+│   │   ├── InstallManager.swift  # Handles install/uninstall
+│   │   ├── AppIcon.png           # High-res app icon (512x512+)
+│   │   ├── logo-64.png           # Alert dialog icon
+│   │   ├── tray-icon-22.png      # Menu bar icon
+│   │   └── tray-icon-44.png      # Menu bar icon @2x
+│   ├── build.sh              # Builds the .app bundle & generates .icns
+│   ├── create-dmg.sh         # Creates DMG with create-dmg tool
 │   └── build/                # Build output (generated)
 │
 └── README.md                 # User documentation
@@ -42,9 +46,10 @@ This project consists of three components:
 ### Prerequisites
 
 - macOS 10.15 or later
-- Xcode Command Line Tools: `xcode-select --install`
+- Xcode Command Line Tools: `xcode-select --install` (includes `sips` and `iconutil` for icon generation)
 - Bun: `curl -fsSL https://bun.sh/install | bash`
 - Chrome browser
+- **For DMG creation**: Homebrew and create-dmg: `brew install create-dmg`
 
 ### Step 1: Build the Native Host
 
@@ -63,7 +68,14 @@ cd companion-app
 ./build.sh
 ```
 
-This compiles the Swift code and creates `build/Open in Default Browser.app`
+This compiles the Swift code, generates the app icon from `Sources/AppIcon.png`, and creates `build/Open in Default Browser.app`.
+
+**Icon Generation:**
+The build script automatically:
+- Creates an iconset with all required macOS icon sizes (16x16 to 1024x1024)
+- Uses `sips` to resize `AppIcon.png` to each size
+- Uses `iconutil` to convert the iconset to `AppIcon.icns`
+- Embeds the icon in the app bundle
 
 ### Step 3: Load the Chrome Extension
 
@@ -106,8 +118,9 @@ If you want to test the full production installation experience:
 
 1. **Note:** This only works with extensions installed from the Chrome Web Store, not unpacked extensions
 2. Launch the app: `open "companion-app/build/Open in Default Browser.app"`
-3. Click "Install" from the menu bar icon
-4. The app will automatically detect your Chrome extension and set everything up
+3. A welcome alert will appear - click "Show Menu"
+4. Click "Install Native Host" from the menu bar
+5. The app will automatically detect your Chrome extension and set everything up
 
 ### Step 5: Test
 
@@ -309,11 +322,15 @@ rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openind
 
 4. **Verify companion app installed correctly** (if using companion app instead of install-dev.sh):
    - Open the app and check it says "✓ Installed"
-   - If not, click "Install" again
+   - If not, click "Install Native Host" again
    - If install fails, check if the Chrome extension was detected:
      - The app should show an error if extension isn't found
      - Make sure the extension is loaded and enabled in Chrome
      - Note: Companion app only works with Web Store extensions, not unpacked ones
+
+**Testing the welcome alert:**
+- The welcome message only shows on first launch
+- To reset and see it again: `defaults delete com.himanshu-satija.open-in-default-browser hasShownWelcome`
 
 5. **Try reinstalling:**
    - **If using install-dev.sh:**
@@ -341,11 +358,12 @@ Chrome's native messaging uses a specific protocol:
 
 ### Companion App Flow
 
-1. **Auto-detection**: Scans `~/Library/Application Support/Google/Chrome/*/Extensions/`
-2. **Finds extension**: Matches by name "Open in Default Browser"
-3. **Copies binary**: From app bundle to permanent location
-4. **Creates manifest**: With detected extension ID and binary path
-5. **Installs**: Copies manifest to Chrome's NativeMessagingHosts directory
+1. **Welcome alert**: On first launch, shows a welcome message and opens the menu
+2. **Auto-detection**: Scans `~/Library/Application Support/Google/Chrome/*/Extensions/`
+3. **Finds extension**: Matches by name "Open in Default Browser"
+4. **Copies binary**: From app bundle to permanent location
+5. **Creates manifest**: With detected extension ID and binary path
+6. **Installs**: Copies manifest to Chrome's NativeMessagingHosts directory
 
 ### Why Bun?
 
@@ -361,32 +379,38 @@ Chrome's native messaging uses a specific protocol:
    - `companion-app/build.sh` (Info.plist)
    - `companion-app/create-dmg.sh` (DMG_NAME)
 
-2. **Build everything:**
+2. **Prerequisites:**
+   - Ensure `create-dmg` is installed: `brew install create-dmg`
+   - Verify `AppIcon.png` exists in `companion-app/Sources/`
+
+3. **Build everything:**
    ```bash
    # Build native host
    cd native-host
    bun build --compile --minify --sourcemap ./host.js --outfile host-binary
    cd ..
 
-   # Build companion app
+   # Build companion app (generates icon automatically)
    cd companion-app
    ./build.sh
    ./create-dmg.sh
    cd ..
    ```
 
-3. **Test the DMG:**
+4. **Test the DMG:**
    - Mount the DMG
-   - Install to Applications
+   - Verify custom background with arrow appears
+   - Verify app icon is visible in Finder
+   - Drag app to Applications folder
    - Test install/uninstall
    - Test with Chrome extension
 
-4. **Create GitHub release:**
+5. **Create GitHub release:**
    - Tag: `v1.0.x`
    - Upload the DMG
    - Include release notes
 
-5. **Submit to Chrome Web Store:**
+6. **Submit to Chrome Web Store:**
    - Package extension: `cd chrome-extension && zip -r ../extension.zip *`
    - Upload to Chrome Web Store Developer Dashboard
    - Wait for review

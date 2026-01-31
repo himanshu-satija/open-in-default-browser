@@ -13,6 +13,13 @@ if [ ! -d "$APP_BUNDLE" ]; then
     exit 1
 fi
 
+# Check if create-dmg is installed
+if ! command -v create-dmg &> /dev/null; then
+    echo "Error: create-dmg is not installed."
+    echo "Please install it with: brew install create-dmg"
+    exit 1
+fi
+
 echo "Creating DMG..."
 
 # Create temporary DMG directory
@@ -23,32 +30,24 @@ mkdir -p "$TMP_DMG_DIR"
 # Copy app bundle
 cp -R "$APP_BUNDLE" "$TMP_DMG_DIR/"
 
-# Create Applications symlink
-ln -s /Applications "$TMP_DMG_DIR/Applications"
-
-# Create README
-cat > "$TMP_DMG_DIR/README.txt" << 'EOF'
-Open in Default Browser - Installation
-
-1. Drag "Open in Default Browser.app" to the Applications folder
-2. Open the app from Applications
-3. Click "Install" from the menu bar icon
-4. Done!
-
-For more information, visit:
-https://github.com/himanshu-satija/open-in-default-browser
-
-Requirements:
-- macOS 10.15 or later
-- Chrome browser with "Open in Default Browser" extension installed
-EOF
-
-# Create DMG
-echo "Packaging DMG..."
-hdiutil create -volname "$VOLUME_NAME" \
-    -srcfolder "$TMP_DMG_DIR" \
-    -ov -format UDZO \
-    "build/$DMG_NAME.dmg"
+# Create DMG using create-dmg tool
+echo "Packaging DMG with create-dmg..."
+create-dmg \
+  --volname "$VOLUME_NAME" \
+  --volicon "$APP_BUNDLE/Contents/Resources/AppIcon.icns" \
+  --window-pos 200 120 \
+  --window-size 600 400 \
+  --icon-size 100 \
+  --icon "$APP_NAME.app" 175 190 \
+  --hide-extension "$APP_NAME.app" \
+  --app-drop-link 425 190 \
+  --no-internet-enable \
+  "build/$DMG_NAME.dmg" \
+  "$TMP_DMG_DIR" || {
+    echo "Error: create-dmg failed. Cleaning up..."
+    rm -rf "$TMP_DMG_DIR"
+    exit 1
+  }
 
 # Clean up
 rm -rf "$TMP_DMG_DIR"

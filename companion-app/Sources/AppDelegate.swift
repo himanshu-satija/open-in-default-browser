@@ -26,6 +26,9 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 
         // Create menu
         createMenu()
+
+        // Show welcome message on first launch
+        showWelcomeIfNeeded()
     }
 
     func createMenu() {
@@ -39,12 +42,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         menu.addItem(NSMenuItem.separator())
 
         // Install button
-        let installItem = NSMenuItem(title: "Install", action: #selector(install), keyEquivalent: "i")
+        let installItem = NSMenuItem(title: "Install Native Host", action: #selector(install), keyEquivalent: "i")
         installItem.target = self
         menu.addItem(installItem)
 
         // Uninstall button
-        let uninstallItem = NSMenuItem(title: "Uninstall", action: #selector(uninstall), keyEquivalent: "u")
+        let uninstallItem = NSMenuItem(title: "Uninstall Native Host", action: #selector(uninstall), keyEquivalent: "u")
         uninstallItem.target = self
         menu.addItem(uninstallItem)
 
@@ -108,6 +111,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         alert.messageText = "Open in Default Browser"
         alert.informativeText = "Version 1.0.0\n\nA companion app for the Chrome extension that allows you to open links in your default browser.\n\n© 2025 Himanshu Satija\nMIT License"
         alert.alertStyle = .informational
+
+        // Set custom icon
+        if let icon = loadAlertIcon() {
+            alert.icon = icon
+        }
+
         alert.addButton(withTitle: "OK")
         alert.addButton(withTitle: "GitHub")
 
@@ -128,8 +137,43 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         alert.messageText = title
         alert.informativeText = message
         alert.alertStyle = .informational
+
+        // Set custom icon
+        if let icon = loadAlertIcon() {
+            alert.icon = icon
+        }
+
         alert.addButton(withTitle: "OK")
         alert.runModal()
+    }
+
+    func showWelcomeIfNeeded() {
+        // Check if we've already shown the welcome message
+        let hasShownWelcome = UserDefaults.standard.bool(forKey: "hasShownWelcome")
+
+        if !hasShownWelcome {
+            // Small delay to ensure menu bar icon is visible
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                let alert = NSAlert()
+                alert.messageText = "Welcome!"
+                alert.informativeText = "The companion app is now in your menu bar (look for the logo in the top right).\n\nClick 'Show Menu' to install the native host, which enables the Chrome extension to open links in your default browser.\n\nYou can open this menu anytime to install or uninstall the native host."
+                alert.alertStyle = .informational
+
+                // Set custom icon
+                if let icon = self.loadAlertIcon() {
+                    alert.icon = icon
+                }
+
+                alert.addButton(withTitle: "Show Menu")
+                alert.runModal()
+
+                // Mark as shown
+                UserDefaults.standard.set(true, forKey: "hasShownWelcome")
+
+                // Open the menu to show install option
+                self.statusItem?.button?.performClick(nil)
+            }
+        }
     }
 
     func loadTrayIcon() -> NSImage? {
@@ -146,6 +190,22 @@ class AppDelegate: NSObject, NSApplicationDelegate {
             return image
         } else if let image = NSImage(contentsOfFile: icon1xPath) {
             image.size = NSSize(width: 22, height: 22)
+            return image
+        }
+
+        return nil
+    }
+
+    func loadAlertIcon() -> NSImage? {
+        // Get the directory where the app binary is located
+        let executablePath = Bundle.main.executablePath ?? ""
+        let executableDir = (executablePath as NSString).deletingLastPathComponent
+
+        // Load the 64x64 logo for alerts
+        let logoPath = (executableDir as NSString).appendingPathComponent("logo-64.png")
+
+        if let image = NSImage(contentsOfFile: logoPath) {
+            image.size = NSSize(width: 64, height: 64)
             return image
         }
 
