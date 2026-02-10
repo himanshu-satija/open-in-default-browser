@@ -35,9 +35,10 @@ This extension adds a "Open in default browser" option to the right-click contex
 
 1. Install this extension from the Chrome Web Store ✓
 2. Download the FREE companion app: https://github.com/himanshu-satija/open-in-default-browser/releases
-3. Open the DMG file and drag the app to Applications
-4. Launch the app and click "Install Native Host"
-5. Done! Right-click any link to try it out
+3. Extract the ZIP and drag the app to Applications
+4. Right-click the app and select "Open" (first launch only)
+5. Click "Install Native Host" from the menu bar
+6. Done! Right-click any link to try it out
 
 **Why is a companion app needed?** Chrome extensions cannot directly open URLs in other browsers for security reasons. The companion app is a tiny menu bar utility (less than 2MB) that handles this securely on your Mac.
 

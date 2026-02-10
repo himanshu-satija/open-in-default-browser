@@ -80,16 +80,17 @@ This guide explains how to package and publish the extension and companion app.
    cd companion-app
    ./build.sh
 
-   # Create DMG for distribution
-   ./create-dmg.sh
+   # Create ZIP for distribution
+   ./create-zip.sh
    ```
 
-   This will create `companion-app/build/OpenInDefaultBrowser-v1.0.0.dmg`
+   This will create `OpenInDefaultBrowser-v1.0.0.zip` in the project root.
 
-2. **Test the DMG:**
+2. **Test the ZIP:**
 
-   - Open the DMG file
+   - Extract the ZIP file
    - Drag the app to Applications
+   - Right-click the app and select "Open" (to bypass Gatekeeper on first launch)
    - Launch the app
    - Test Install/Uninstall functionality
 
@@ -109,11 +110,11 @@ This guide explains how to package and publish the extension and companion app.
 
      ### Installation
 
-     1. Download `OpenInDefaultBrowser-v1.0.0.dmg`
-     2. Open the DMG file
+     1. Download `OpenInDefaultBrowser-v1.0.0.zip`
+     2. Double-click to extract the ZIP file
      3. Drag "Open in Default Browser.app" to Applications
-     4. Launch the app from Applications
-     5. Click "Install" from the menu bar icon
+     4. Right-click the app and select "Open" (first launch only - to bypass Gatekeeper)
+     5. Click "Install Native Host" from the menu bar icon
      6. Done!
 
      ### Features
@@ -128,11 +129,15 @@ This guide explains how to package and publish the extension and companion app.
      - macOS 10.15 or later
      - Chrome browser with "Open in Default Browser" extension installed from Chrome Web Store
 
+     ### Note
+
+     The app is not signed with an Apple Developer certificate. On first launch, you'll need to right-click and select "Open" to bypass Gatekeeper. This is normal for unsigned apps and is safe to do.
+
      For full documentation, see the [README](https://github.com/himanshu-satija/open-in-default-browser/blob/main/README.md).
      ```
 
-5. **Upload the DMG:**
-   - Drag and drop `OpenInDefaultBrowser-v1.0.0.dmg` to the release assets section
+5. **Upload the ZIP:**
+   - Drag and drop `OpenInDefaultBrowser-v1.0.0.zip` to the release assets section
 
 6. **Publish the release:**
    - Click "Publish release"
@@ -177,6 +182,7 @@ When releasing a new version:
    - Upload the new ZIP
 
 4. **Create new GitHub release** if companion app changed:
+   - Build new ZIP with updated version number
    - Follow Part 2 steps with new version number
 
 ## Checklist

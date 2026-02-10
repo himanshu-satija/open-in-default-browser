@@ -9,6 +9,7 @@
 Do you use Chrome for specific apps (like PWAs) but prefer a different browser for everything else?
 
 **Common scenario:**
+
 - You use Firefox (or another browser) as your default browser with all your accounts logged in
 - You use a Chrome PWA for an app that doesn't have a native desktop version (like Google Chat, Slack, WhatsApp, etc.)
 - When you click links in the PWA, they open in Chrome instead of your default browser
@@ -34,13 +35,15 @@ Install from the Chrome Web Store: [Link will be added after publishing]
 
 **Important:** This extension requires a companion app to work. This is due to Chrome's security model - extensions cannot directly open links in other browsers.
 
-1. **Download `OpenInDefaultBrowser.dmg`** from the [Releases page](https://github.com/himanshu-satija/open-in-default-browser/releases)
-2. **Open the DMG file**
+1. **Download `OpenInDefaultBrowser-<latest>.zip`** from the [Releases page](https://github.com/himanshu-satija/open-in-default-browser/releases)
+2. **Double-click to extract** the ZIP file
 3. **Drag "Open in Default Browser.app"** to your Applications folder
-4. **Launch the app** from Applications
+4. **Right-click the app and select "Open"** (first launch only - to bypass Gatekeeper)
 5. **A welcome message will appear** - click "Show Menu" to continue
 6. **Click "Install Native Host"** from the menu
 7. Done! The app will automatically detect your Chrome extension and configure everything.
+
+**Note:** The app is not signed with an Apple Developer certificate. On first launch, you need to right-click and select "Open" to bypass Gatekeeper. This is normal for unsigned apps.
 
 ## Usage
 
@@ -57,9 +60,11 @@ Install from the Chrome Web Store: [Link will be added after publishing]
 ## Troubleshooting
 
 ### The context menu option doesn't appear
+
 - Make sure the extension is installed and enabled in `chrome://extensions/`
 
 ### Clicking the option does nothing
+
 - Make sure you've installed the companion app and clicked "Install Native Host" in the menu bar
 - Open the companion app from Applications and check if it says "✓ Installed"
 - If not installed, click "Install Native Host" from the menu bar icon
@@ -70,16 +75,19 @@ Install from the Chrome Web Store: [Link will be added after publishing]
   4. Look for error messages
 
 ### The companion app says it can't find the Chrome extension
+
 - Make sure the Chrome extension is installed from the Chrome Web Store
 - The extension must be enabled in `chrome://extensions/`
 - Try restarting Chrome and then opening the companion app again
 
 ### Still having issues?
+
 [Open an issue on GitHub](https://github.com/himanshu-satija/open-in-default-browser/issues)
 
 ## Uninstallation
 
 1. **Uninstall from the companion app:**
+
    - Open the app from menu bar
    - Click "Uninstall Native Host"
    - Quit the app

@@ -28,12 +28,12 @@ cd companion-app
 echo "✓ Companion app built"
 cd ..
 
-# Step 3: Create DMG
+# Step 3: Create ZIP
 echo ""
-echo "Step 3/4: Creating DMG..."
+echo "Step 3/4: Creating ZIP..."
 cd companion-app
-./create-dmg.sh
-echo "✓ DMG created"
+./create-zip.sh
+echo "✓ ZIP created"
 cd ..
 
 # Step 4: Create extension ZIP
@@ -51,11 +51,11 @@ echo "========================================="
 echo ""
 echo "Files created:"
 echo "  • Extension ZIP: open-in-default-browser-extension.zip"
-echo "  • Companion DMG: companion-app/build/OpenInDefaultBrowser-v${VERSION}.dmg"
+echo "  • Companion ZIP: OpenInDefaultBrowser-v${VERSION}.zip"
 echo ""
 echo "Next steps:"
 echo "  1. Test the extension ZIP by loading it unpacked in Chrome"
-echo "  2. Test the DMG by opening and installing the app"
+echo "  2. Test the companion ZIP by extracting and installing the app"
 echo "  3. Upload extension ZIP to Chrome Web Store"
-echo "  4. Create GitHub release and upload the DMG"
+echo "  4. Create GitHub release and upload the companion ZIP"
 echo ""
