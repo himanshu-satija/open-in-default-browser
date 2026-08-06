@@ -80,6 +80,13 @@ class InstallManager {
             try FileManager.default.copyItem(at: hostBinarySource, to: hostBinaryDest)
             // Make it executable
             try FileManager.default.setAttributes([.posixPermissions: 0o755], ofItemAtPath: hostBinaryDest.path)
+            
+            // Remove quarantine attribute if present
+            let xattrProcess = Process()
+            xattrProcess.executableURL = URL(fileURLWithPath: "/usr/bin/xattr")
+            xattrProcess.arguments = ["-cr", hostBinaryDest.path]
+            try? xattrProcess.run()
+            xattrProcess.waitUntilExit()
         } catch {
             return InstallResult(
                 success: false,

@@ -37,13 +37,23 @@ Install from the Chrome Web Store: [Link will be added after publishing]
 
 1. **Download `OpenInDefaultBrowser-<latest>.zip`** from the [Releases page](https://github.com/himanshu-satija/open-in-default-browser/releases)
 2. **Double-click to extract** the ZIP file
-3. **Drag "Open in Default Browser.app"** to your Applications folder
-4. **Right-click the app and select "Open"** (first launch only - to bypass Gatekeeper)
-5. **A welcome message will appear** - click "Show Menu" to continue
-6. **Click "Install Native Host"** from the menu
-7. Done! The app will automatically detect your Chrome extension and configure everything.
+3. **Run the installer script**:
+   - Open Terminal (Applications → Utilities → Terminal)
+   - Type: `cd Downloads/OpenInDefaultBrowser`
+   - Type: `./install-app.sh`
+   - Press Enter
+4. **The app will launch automatically** - click "Show Menu" to continue
+5. **Click "Install Native Host"** from the menu
+6. Done! The app will automatically detect your Chrome extension and configure everything.
 
-**Note:** The app is not signed with an Apple Developer certificate. On first launch, you need to right-click and select "Open" to bypass Gatekeeper. This is normal for unsigned apps.
+**Alternative (manual installation)**:
+If you prefer not to use the script, drag the app to Applications, then run:
+```bash
+xattr -d com.apple.quarantine "/Applications/Open in Default Browser.app"
+open "/Applications/Open in Default Browser.app"
+```
+
+**Note:** The app is ad-hoc signed (self-signed) for security. The installer script handles macOS security prompts automatically.
 
 ## Usage
 
@@ -79,6 +89,18 @@ Install from the Chrome Web Store: [Link will be added after publishing]
 - Make sure the Chrome extension is installed from the Chrome Web Store
 - The extension must be enabled in `chrome://extensions/`
 - Try restarting Chrome and then opening the companion app again
+
+### macOS says the app "cannot be opened" (macOS 13+)
+
+On macOS Ventura (13) and later, you may see "Apple cannot verify..." with no "Open" button.
+
+**Solution**: Use the included `install-app.sh` script (see installation instructions above).
+
+**Alternative (System Settings method)**:
+1. Open System Settings → Privacy & Security
+2. Scroll down to "Security"
+3. Find "Open in Default Browser was blocked"
+4. Click "Open Anyway"
 
 ### Still having issues?
 

@@ -84,7 +84,7 @@ This guide explains how to package and publish the extension and companion app.
    ./create-zip.sh
    ```
 
-   This will create `OpenInDefaultBrowser-v1.0.0.zip` in the project root.
+   This will create `OpenInDefaultBrowser-v1.0.0.zip` in `./companion-app` folder.
 
 2. **Test the ZIP:**
 
@@ -112,10 +112,19 @@ This guide explains how to package and publish the extension and companion app.
 
      1. Download `OpenInDefaultBrowser-v1.0.0.zip`
      2. Double-click to extract the ZIP file
-     3. Drag "Open in Default Browser.app" to Applications
-     4. Right-click the app and select "Open" (first launch only - to bypass Gatekeeper)
-     5. Click "Install Native Host" from the menu bar icon
-     6. Done!
+     3. Open Terminal and run: `cd Downloads/OpenInDefaultBrowser && ./install-app.sh`
+     4. Click "Install Native Host" from the menu bar icon
+     5. Done!
+
+     ### macOS 13+ Users (Ventura/Sonoma/Sequoia)
+
+     The easiest way to install is using the included helper script:
+
+     1. Open Terminal
+     2. `cd Downloads/OpenInDefaultBrowser`
+     3. `./install-app.sh`
+
+     The script will bypass Gatekeeper and launch the app automatically.
 
      ### Features
 
@@ -123,6 +132,7 @@ This guide explains how to package and publish the extension and companion app.
      - ✅ Automatic Chrome extension detection
      - ✅ One-click install/uninstall
      - ✅ Native macOS menu bar app
+     - ✅ Easy installation script for macOS 13+
 
      ### Requirements
 
@@ -131,7 +141,7 @@ This guide explains how to package and publish the extension and companion app.
 
      ### Note
 
-     The app is not signed with an Apple Developer certificate. On first launch, you'll need to right-click and select "Open" to bypass Gatekeeper. This is normal for unsigned apps and is safe to do.
+     The app is ad-hoc signed (self-signed). The installer script handles macOS security prompts automatically.
 
      For full documentation, see the [README](https://github.com/himanshu-satija/open-in-default-browser/blob/main/README.md).
      ```

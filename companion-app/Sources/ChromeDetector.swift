@@ -13,11 +13,25 @@ class ChromeDetector {
             return nil
         }
 
-        // Search through Chrome profiles
-        let profiles = ["Default", "Profile 1", "Profile 2", "Profile 3"]
+        // Discover all Chrome profiles (Default, Profile 1, Profile 2, etc.)
+        let profiles: [String]
+        if let subdirs = try? FileManager.default.contentsOfDirectory(atPath: chromeDir.path) {
+            let matched = subdirs.filter { $0 == "Default" || $0.hasPrefix("Profile ") }
+            profiles = matched.isEmpty ? ["Default", "Profile 1", "Profile 2", "Profile 3"] : matched
+        } else {
+            profiles = ["Default", "Profile 1", "Profile 2", "Profile 3"]
+        }
 
+        // First try standard installed extensions folder
         for profile in profiles {
             if let extensionID = searchInProfile(chromeDir: chromeDir, profile: profile) {
+                return extensionID
+            }
+        }
+
+        // Fallback: search Preferences & Secure Preferences JSON for unpacked developer extensions
+        for profile in profiles {
+            if let extensionID = searchInProfilePreferences(chromeDir: chromeDir, profile: profile) {
                 return extensionID
             }
         }
@@ -65,6 +79,53 @@ class ChromeDetector {
             }
         } catch {
             print("Error searching Chrome extensions: \(error)")
+        }
+
+        return nil
+    }
+
+    private func searchInProfilePreferences(chromeDir: URL, profile: String) -> String? {
+        let prefFiles = ["Secure Preferences", "Preferences"]
+
+        for prefFile in prefFiles {
+            let prefPath = chromeDir.appendingPathComponent("\(profile)/\(prefFile)")
+            guard FileManager.default.fileExists(atPath: prefPath.path),
+                  let data = try? Data(contentsOf: prefPath),
+                  let json = (try? JSONSerialization.jsonObject(with: data, options: [])) as? [String: Any],
+                  let extensions = json["extensions"] as? [String: Any],
+                  let settings = extensions["settings"] as? [String: Any] else {
+                continue
+            }
+
+            for (extID, extInfo) in settings {
+                guard let extDict = extInfo as? [String: Any] else { continue }
+
+                var manifest: [String: Any]? = extDict["manifest"] as? [String: Any]
+                let pathStr = extDict["path"] as? String ?? ""
+
+                // For unpacked extensions, load manifest.json from the path on disk if available
+                if manifest == nil || (manifest?["name"] as? String)?.isEmpty == true {
+                    if !pathStr.isEmpty {
+                        let manifestURL = URL(fileURLWithPath: pathStr).appendingPathComponent("manifest.json")
+                        manifest = loadManifest(at: manifestURL)
+                    }
+                }
+
+                if let manifest = manifest {
+                    if let name = manifest["name"] as? String {
+                        let lowerName = name.lowercased()
+                        if name.contains(extensionName) || lowerName.contains("default browser") || (lowerName.contains("open") && lowerName.contains("browser")) {
+                            return extID
+                        }
+                    }
+                }
+
+                // Additional check on path string for unpacked extensions
+                let lowerPath = pathStr.lowercased()
+                if lowerPath.contains("open-in-default-browser") || (lowerPath.contains("open") && lowerPath.contains("default") && lowerPath.contains("browser")) {
+                    return extID
+                }
+            }
         }
 
         return nil

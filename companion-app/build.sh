@@ -98,6 +98,10 @@ cat > "$CONTENTS_DIR/Info.plist" << 'EOF'
 </plist>
 EOF
 
+# Ad-hoc code sign the app (prevents "damaged" error without Apple Developer account)
+echo "Code signing app bundle..."
+codesign --force --deep --sign - "$APP_BUNDLE"
+
 echo "✓ Build complete!"
 echo ""
 echo "App bundle created at: $APP_BUNDLE"
@@ -105,5 +109,5 @@ echo ""
 echo "To test the app:"
 echo "  open '$APP_BUNDLE'"
 echo ""
-echo "To create a DMG for distribution:"
-echo "  ./create-dmg.sh"
+echo "To create a ZIP for distribution:"
+echo "  ./create-zip.sh"

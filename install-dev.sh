@@ -57,6 +57,7 @@ echo "✓ Created native messaging directory"
 # Copy host binary
 cp "$HOST_BINARY_SOURCE" "$HOST_BINARY_DEST"
 chmod +x "$HOST_BINARY_DEST"
+xattr -cr "$HOST_BINARY_DEST" 2>/dev/null || true
 echo "✓ Copied host binary to: $HOST_BINARY_DEST"
 
 # Create manifest
