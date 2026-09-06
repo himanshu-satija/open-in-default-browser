@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Open in Default Browser",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Open links in your system's default browser via right-click context menu",
   "permissions": ["contextMenus", "nativeMessaging", "notifications"],
   "background": {

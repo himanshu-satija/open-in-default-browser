@@ -66,13 +66,13 @@ This guide explains how to build and publish the extension and the native host i
 
    This will:
    - Compile `native-host/host.js` into a standalone `host-binary` using Bun
-   - Package `install.sh`, `uninstall.sh`, `host-binary`, and `README.txt` into `OpenInDefaultBrowser-v1.0.0.zip`
+   - Package `install.sh`, `uninstall.sh`, `host-binary`, and `README.txt` into `OpenInDefaultBrowser-v1.1.0.zip`
 
 2. **Test the ZIP locally:**
    ```bash
    # Extract to a temp folder
    mkdir -p /tmp/test-release
-   unzip OpenInDefaultBrowser-v1.0.0.zip -d /tmp/test-release
+   unzip OpenInDefaultBrowser-v1.1.0.zip -d /tmp/test-release
    cd /tmp/test-release
    ./install.sh
    # Verify: right-click a link in Chrome and test
@@ -85,21 +85,21 @@ This guide explains how to build and publish the extension and the native host i
    - Click **Create a new release**
 
 4. **Release information:**
-   - **Tag version:** `v1.0.0`
-   - **Release title:** `Open in Default Browser v1.0.0`
+   - **Tag version:** `v1.1.0`
+   - **Release title:** `Open in Default Browser v1.1.0`
    - **Description:**
      ```markdown
-     ## Open in Default Browser v1.0.0
+     ## Open in Default Browser v1.1.0
 
      Enables the "Open in Default Browser" Chrome extension to open links
      in your system's default browser.
 
      ### Installation (2 steps)
 
-     1. Download `OpenInDefaultBrowser-v1.0.0.zip` below
+     1. Download `OpenInDefaultBrowser-v1.1.0.zip` below
      2. Extract it, then open Terminal and run:
         ```bash
-        cd ~/Downloads/OpenInDefaultBrowser-v1.0.0
+        cd ~/Downloads/OpenInDefaultBrowser-v1.1.0
         ./install.sh
         ```
 
@@ -109,7 +109,7 @@ This guide explains how to build and publish the extension and the native host i
      ### Uninstall
 
      ```bash
-     cd ~/Downloads/OpenInDefaultBrowser-v1.0.0
+     cd ~/Downloads/OpenInDefaultBrowser-v1.1.0
      ./uninstall.sh
      ```
 
@@ -131,7 +131,7 @@ This guide explains how to build and publish the extension and the native host i
      ```
 
 5. **Upload the ZIP:**
-   - Drag and drop `OpenInDefaultBrowser-v1.0.0.zip` to the release assets
+   - Drag and drop `OpenInDefaultBrowser-v1.1.0.zip` to the release assets
 
 6. **Publish the release**
 

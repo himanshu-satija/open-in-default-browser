@@ -7,7 +7,7 @@ echo "Building Release for Open in Default Browser"
 echo "========================================="
 echo ""
 
-VERSION="1.0.0"
+VERSION="1.1.0"
 ZIP_NAME="OpenInDefaultBrowser-v${VERSION}.zip"
 
 # Step 1: Build native host

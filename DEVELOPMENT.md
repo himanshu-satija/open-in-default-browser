@@ -208,7 +208,7 @@ For end-user installs (where the extension is already in the Chrome Web Store):
 ./build-release.sh
 ```
 
-This builds `host-binary` with Bun and packages `install.sh`, `uninstall.sh`, `host-binary`, and `README.txt` into `OpenInDefaultBrowser-v1.0.0.zip`.
+This builds `host-binary` with Bun and packages `install.sh`, `uninstall.sh`, `host-binary`, and `README.txt` into `OpenInDefaultBrowser-v1.1.0.zip`.
 
 See [PACKAGING.md](PACKAGING.md) for the full release checklist.
 
