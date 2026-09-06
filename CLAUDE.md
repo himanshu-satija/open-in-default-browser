@@ -2,7 +2,7 @@
 
 ## Project Overview
 
-A Chrome extension that allows users to open any link on a webpage in their system's default browser (which may be different from Chrome). Features a user-friendly macOS companion app for easy installation.
+A Chrome extension that allows users to open any link on a webpage in their system's default browser (which may be different from Chrome). Uses a shell-script installer to set up the required native messaging host.
 
 ## Use Case
 
@@ -27,12 +27,11 @@ The primary use case that inspired this extension:
 - Opens URL using macOS `open` command
 - Files: `native-host/host.js` (source), `host-binary` (compiled)
 
-### 3. Companion macOS App
-- Native Swift menu bar application
-- Automatically detects Chrome extension ID
-- One-click install/uninstall
-- Manages native messaging host installation
-- Files: `companion-app/Sources/*.swift`
+### 3. Shell Script Installer
+- `install.sh` — end-user one-step installer; auto-detects Chrome extension ID and registers the native host
+- `install-dev.sh` — developer installer; accepts an explicit extension ID argument
+- `uninstall.sh` — removes the native host registration
+- `build-release.sh` — builds `host-binary` and packages the release ZIP
 
 ## Technical Architecture
 
@@ -44,13 +43,13 @@ The primary use case that inspired this extension:
 
 ### Installation Flow
 1. User installs Chrome extension from Web Store
-2. User downloads and installs companion app (DMG)
-3. User clicks "Install" in companion app menu bar
-4. App automatically:
-   - Detects Chrome extension ID by scanning extensions directory
-   - Copies native host binary to permanent location
-   - Creates manifest with detected extension ID
-   - Installs manifest to Chrome's NativeMessagingHosts directory
+2. User downloads `OpenInDefaultBrowser-vX.X.X.zip` from GitHub Releases
+3. User extracts the ZIP and runs `./install.sh` in Terminal
+4. The script automatically:
+   - Detects Chrome extension ID by scanning Chrome's preferences/profiles
+   - Copies `host-binary` to `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/`
+   - Writes the JSON manifest with the detected extension ID in `allowed_origins`
+   - Sets correct file permissions
 
 ### Runtime Flow
 1. User right-clicks link in Chrome
@@ -73,11 +72,11 @@ The primary use case that inspired this extension:
 
 ### For Users
 - Chrome extension: Chrome Web Store
-- Companion app: GitHub Releases (DMG file)
-- Installation: 4 simple steps, no technical knowledge required
+- Native host installer: GitHub Releases (ZIP file with `install.sh`)
+- Installation: 2 simple steps, no technical knowledge required
 
 ### For Developers
-- Build system: Bun (native host) + Swift (companion app)
+- Build system: Bun (native host compilation)
 - Source code: Open source on GitHub
 - License: MIT
 
@@ -100,19 +99,13 @@ The primary use case that inspired this extension:
 │
 ├── native-host/              # Native messaging host
 │   ├── host.js              # Source code
-│   ├── host-binary          # Compiled executable
+│   ├── host-binary          # Compiled executable (generated — not in git)
 │   └── README.md
 │
-├── companion-app/            # macOS companion app
-│   ├── Sources/
-│   │   ├── main.swift
-│   │   ├── AppDelegate.swift
-│   │   ├── ChromeDetector.swift
-│   │   └── InstallManager.swift
-│   ├── build.sh
-│   ├── create-dmg.sh
-│   └── build/               # Generated
-│
+├── install.sh                # One-step installer for end users
+├── uninstall.sh              # One-step uninstaller for end users
+├── install-dev.sh            # Developer installer (takes Extension ID as argument)
+├── build-release.sh          # Builds host-binary and creates the release ZIP
 ├── README.md                 # User documentation
 ├── DEVELOPMENT.md            # Developer guide
 ├── PACKAGING.md              # Release instructions
@@ -125,11 +118,6 @@ The primary use case that inspired this extension:
 - Uses `bun build --compile` to create standalone executable
 - Eliminates Node.js dependency for end users
 - ~60MB file includes runtime and all dependencies
-
-### Swift Menu Bar App
-- Native macOS feel, small footprint (~1-2MB)
-- Auto-detection reduces user friction
-- Clear status indicators (✓ Installed / ✗ Not Installed)
 
 ### Chrome Extension Detection
 - Scans `~/Library/Application Support/Google/Chrome/*/Extensions/`
@@ -187,7 +175,7 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for:
    - Adding new scripts (like `install-dev.sh`)
    - Changing build commands or flags
    - Adding new dependencies or requirements
-   - Modifying the companion app installation flow
+   - Modifying the native host installation flow
    - Changes to native messaging protocol or manifest
 
 5. **Keep documentation consistent:**

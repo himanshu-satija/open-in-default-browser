@@ -25,24 +25,23 @@ Do you use Chrome for specific apps (like PWAs) but prefer a different browser f
 
 ### The Solution
 
-This extension adds a "Open in default browser" option to the right-click context menu on all links. Simply right-click any link and select this option to open it in your system's default browser instead of Chrome.
+This extension adds an **"Open in default browser"** option to the right-click context menu on all links. Simply right-click any link and select this option to open it in your system's default browser.
 
-### ⚠️ IMPORTANT: Companion App Required
+### ⚠️ IMPORTANT: Native Host Required
 
-**This extension requires a FREE companion app to work.** The extension alone cannot open links in other browsers due to Chrome's security model.
+**This extension requires a free native host installer to work.** Chrome extensions cannot directly open links in other browsers due to Chrome's security model — a small background binary handles this.
 
 **Quick Setup (2 minutes):**
 
 1. Install this extension from the Chrome Web Store ✓
-2. Download the FREE companion app: https://github.com/himanshu-satija/open-in-default-browser/releases
-3. Extract the ZIP
-4. Open Terminal, run: `cd Downloads/OpenInDefaultBrowser && ./install-app.sh`
-5. Click "Install Native Host" from the menu bar
-6. Done! Right-click any link to try it out
+2. Download the free installer: https://github.com/himanshu-satija/open-in-default-browser/releases
+3. Extract (double-click) the downloaded ZIP
+4. Open **Terminal** (Applications → Utilities → Terminal)
+5. Type `cd ` (with a space after), then **drag the extracted folder** onto the Terminal window — this pastes the correct path automatically
+6. Press **Enter**, then type `./install.sh` and press **Enter** again
+7. Done! Right-click any link to try it out.
 
-(macOS 13+ users: The helper script makes installation easy!)
-
-**Why is a companion app needed?** Chrome extensions cannot directly open URLs in other browsers for security reasons. The companion app is a tiny menu bar utility (less than 2MB) that handles this securely on your Mac.
+There is no persistent app — the installer registers a tiny background binary that Chrome calls on demand.
 
 ### Features
 
@@ -51,22 +50,19 @@ This extension adds a "Open in default browser" option to the right-click contex
 - Respects your system's default browser setting
 - Lightweight and privacy-focused (no data collection)
 - Open source
-- **Shows error notifications** if companion app is not installed
+- Shows error notifications if the native host is not installed
 
 ### Platform Support
 
-- macOS only (currently)
+- macOS 10.15 or later
 
 ### Privacy
 
-This extension does not collect, store, or transmit any user data. All processing happens locally on your machine. The extension only communicates with the locally-installed companion app to open URLs.
+This extension does not collect, store, or transmit any user data. All processing happens locally on your machine. The extension only communicates with the locally-installed native host to open URLs.
 
 ### Open Source
 
-This extension is open source and available on GitHub:
 https://github.com/himanshu-satija/open-in-default-browser
-
-Found a bug or want to contribute? Visit the GitHub repository!
 
 ## Category
 
@@ -78,23 +74,22 @@ English
 
 ## Screenshots Needed
 
-1. Context menu showing "Open in default browser" option
-2. Extension icon and popup (if applicable)
-3. Before/after comparison showing link opening in different browser
+1. Context menu showing "Open in default browser" option on a link
+2. Before/after: link opening in a different browser than Chrome
 
 ## Promotional Images Needed
 
-- Small tile: 440x280
-- Marquee: 1400x560 (optional but recommended)
+- Small tile: 440×280
+- Marquee: 1400×560 (recommended)
 
 ## Additional Information
 
 ### Single Purpose
 
-This extension serves a single purpose: allowing users to open links in their system's default browser via context menu.
+This extension serves a single purpose: allowing users to open links in their system's default browser via the context menu.
 
 ### Permissions Justification
 
-- **contextMenus**: Required to add the "Open in default browser" option to the right-click menu
-- **nativeMessaging**: Required to communicate with the companion app that opens URLs in the default browser
-- **notifications**: Required to show error messages if the companion app is not installed or if something goes wrong
+- **contextMenus**: Required to add the "Open in default browser" option to the right-click menu on links
+- **nativeMessaging**: Required to communicate with the locally-installed native host binary that opens URLs in the default browser
+- **notifications**: Required to show error messages if the native host is not installed or something goes wrong

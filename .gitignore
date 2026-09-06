@@ -8,7 +8,6 @@
 *.tar.gz
 *.dmg
 release-package/
-companion-app/build/
 
 # Node.js (if added later)
 node_modules/

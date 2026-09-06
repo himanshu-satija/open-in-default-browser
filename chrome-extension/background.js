@@ -1,6 +1,10 @@
 // Native messaging host name (must match the host manifest)
 const NATIVE_HOST_NAME = 'com.openindefaultbrowser.host';
 
+// Stable ID for the "not installed" notification so we can respond to clicks on it
+const INSTALL_NOTIF_ID = 'native-host-not-installed';
+const RELEASES_URL = 'https://github.com/himanshu-satija/open-in-default-browser/releases';
+
 // Create context menu item when extension is installed
 chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
@@ -14,6 +18,21 @@ chrome.runtime.onInstalled.addListener(() => {
 chrome.contextMenus.onClicked.addListener((info, tab) => {
   if (info.menuItemId === 'openInDefaultBrowser' && info.linkUrl) {
     openInDefaultBrowser(info.linkUrl);
+  }
+});
+
+// Open GitHub releases page when the user clicks the notification body or its button
+chrome.notifications.onClicked.addListener((notificationId) => {
+  if (notificationId === INSTALL_NOTIF_ID) {
+    chrome.tabs.create({ url: RELEASES_URL });
+    chrome.notifications.clear(INSTALL_NOTIF_ID);
+  }
+});
+
+chrome.notifications.onButtonClicked.addListener((notificationId, buttonIndex) => {
+  if (notificationId === INSTALL_NOTIF_ID) {
+    chrome.tabs.create({ url: RELEASES_URL });
+    chrome.notifications.clear(INSTALL_NOTIF_ID);
   }
 });
 
@@ -44,15 +63,29 @@ function openInDefaultBrowser(url) {
   port.onDisconnect.addListener(() => {
     clearTimeout(timeoutId);
     if (chrome.runtime.lastError && !responseReceived) {
-      const error = chrome.runtime.lastError.message;
+      const error = chrome.runtime.lastError.message || '';
       console.error('Native host error:', error);
 
-      // Check if native host is not installed
-      if (error.includes('host not found') || error.includes('not installed') || error.includes('Specified native messaging host not found')) {
-        showNotification('error', 'Native host not installed',
-          'Please install the companion app to use this extension.');
+      // "Forbidden" = host binary not installed or extension ID not in allowed_origins
+      // "Not found"  = manifest JSON missing from NativeMessagingHosts directory
+      const isNotInstalled =
+        error.includes('forbidden') ||
+        error.includes('not found') ||
+        error.includes('not installed') ||
+        error.includes('Specified native messaging host not found');
+
+      if (isNotInstalled) {
+        chrome.notifications.create(INSTALL_NOTIF_ID, {
+          type: 'basic',
+          iconUrl: 'icon48.png',
+          title: 'Native host not installed',
+          message: 'Click here to download the installer from GitHub.',
+          priority: 2,
+          requireInteraction: true,
+          buttons: [{ title: 'Download Installer' }]
+        });
       } else {
-        showNotification('error', 'Connection error', error);
+        showNotification('error', 'Could not open link', error);
       }
     }
   });
@@ -61,7 +94,7 @@ function openInDefaultBrowser(url) {
   port.postMessage({ url: url });
 }
 
-// Show notification to user
+// Show a generic notification
 function showNotification(type, title, message = '') {
   const notificationOptions = {
     type: 'basic',

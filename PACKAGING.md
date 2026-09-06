@@ -1,6 +1,6 @@
 # Packaging Guide
 
-This guide explains how to package and publish the extension and companion app.
+This guide explains how to build and publish the extension and the native host installer.
 
 ## Part 1: Package Chrome Extension for Web Store
 
@@ -8,220 +8,189 @@ This guide explains how to package and publish the extension and companion app.
 
 1. A Google account
 2. Developer registration on Chrome Web Store ($5 one-time fee)
-3. The extension files ready in the `chrome-extension/` directory
+3. Extension files ready in `chrome-extension/`
 
 ### Steps
 
 1. **Verify extension files:**
    ```bash
-   cd chrome-extension
-   ls -la
+   ls chrome-extension/
+   # Should show: manifest.json  background.js  icon48.png  icon128.png
    ```
-   You should see:
-   - `manifest.json`
-   - `background.js`
-   - `icon48.png`
-   - `icon128.png`
 
 2. **Create a ZIP file:**
    ```bash
    cd chrome-extension
-   zip -r ../open-in-default-browser-extension.zip *
+   zip -r ../open-in-default-browser-extension.zip * -x "*.DS_Store"
    cd ..
    ```
 
-3. **Go to Chrome Web Store Developer Dashboard:**
+3. **Go to the Chrome Web Store Developer Dashboard:**
    - Visit: https://chrome.google.com/webstore/devconsole
-   - Sign in with your Google account
-   - Register as a developer if you haven't already
+   - Sign in and register as a developer if needed
 
 4. **Create a new item:**
-   - Click "New Item"
+   - Click **New Item**
    - Upload `open-in-default-browser-extension.zip`
-   - Fill in the required information using `STORE_LISTING.md` as reference
+   - Fill in details from `STORE_LISTING.md`
 
 5. **Required information:**
-   - **Store listing:** Copy from `STORE_LISTING.md`
-   - **Privacy policy URL:** After publishing to GitHub, use the raw URL of `PRIVACY.md`
+   - **Store listing:** copy from `STORE_LISTING.md`
+   - **Privacy policy URL:** use the raw GitHub URL of `PRIVACY.md`
      - Example: `https://raw.githubusercontent.com/himanshu-satija/open-in-default-browser/main/PRIVACY.md`
    - **Category:** Productivity
    - **Language:** English
 
 6. **Upload promotional images:**
-   - Small tile: 440x280 (required)
-   - Marquee: 1400x560 (recommended)
-   - Screenshots showing the extension in action
+   - Small tile: 440×280 (required)
+   - Marquee: 1400×560 (recommended)
+   - Screenshots of the extension in action
 
-7. **Submit for review:**
-   - Review all information
-   - Click "Submit for review"
-   - Wait for Chrome Web Store team approval (usually 1-3 business days)
+7. **Submit for review** — usually approved within 1–3 business days
 
-## Part 2: Create GitHub Release for Companion App
+---
+
+## Part 2: Create GitHub Release for Native Host Installer
 
 ### Prerequisites
 
-1. A GitHub account
-2. Repository created at github.com/himanshu-satija/open-in-default-browser
-3. All code pushed to the repository
-4. Bun installed on your machine
+1. A GitHub account with access to this repository
+2. Bun installed: `curl -fsSL https://bun.sh/install | bash`
 
 ### Steps
 
-1. **Build the companion app:**
-
+1. **Build everything:**
    ```bash
-   # Compile host.js to binary
-   cd native-host
-   bun build --compile --minify --sourcemap ./host.js --outfile host-binary
-   cd ..
-
-   # Build the macOS app
-   cd companion-app
-   ./build.sh
-
-   # Create ZIP for distribution
-   ./create-zip.sh
+   ./build-release.sh
    ```
 
-   This will create `OpenInDefaultBrowser-v1.0.0.zip` in `./companion-app` folder.
+   This will:
+   - Compile `native-host/host.js` into a standalone `host-binary` using Bun
+   - Package `install.sh`, `uninstall.sh`, `host-binary`, and `README.txt` into `OpenInDefaultBrowser-v1.0.0.zip`
 
-2. **Test the ZIP:**
-
-   - Extract the ZIP file
-   - Drag the app to Applications
-   - Right-click the app and select "Open" (to bypass Gatekeeper on first launch)
-   - Launch the app
-   - Test Install/Uninstall functionality
+2. **Test the ZIP locally:**
+   ```bash
+   # Extract to a temp folder
+   mkdir -p /tmp/test-release
+   unzip OpenInDefaultBrowser-v1.0.0.zip -d /tmp/test-release
+   cd /tmp/test-release
+   ./install.sh
+   # Verify: right-click a link in Chrome and test
+   ./uninstall.sh
+   ```
 
 3. **Create a GitHub release:**
    - Go to your repository on GitHub
-   - Click "Releases" in the right sidebar
-   - Click "Create a new release"
+   - Click **Releases** in the right sidebar
+   - Click **Create a new release**
 
 4. **Release information:**
    - **Tag version:** `v1.0.0`
    - **Release title:** `Open in Default Browser v1.0.0`
    - **Description:**
      ```markdown
-     ## Open in Default Browser - Companion App
+     ## Open in Default Browser v1.0.0
 
-     A simple Mac menu bar app that enables the "Open in Default Browser" Chrome extension.
+     Enables the "Open in Default Browser" Chrome extension to open links
+     in your system's default browser.
 
-     ### Installation
+     ### Installation (2 steps)
 
-     1. Download `OpenInDefaultBrowser-v1.0.0.zip`
-     2. Double-click to extract the ZIP file
-     3. Open Terminal and run: `cd Downloads/OpenInDefaultBrowser && ./install-app.sh`
-     4. Click "Install Native Host" from the menu bar icon
-     5. Done!
+     1. Download `OpenInDefaultBrowser-v1.0.0.zip` below
+     2. Extract it, then open Terminal and run:
+        ```bash
+        cd ~/Downloads/OpenInDefaultBrowser-v1.0.0
+        ./install.sh
+        ```
 
-     ### macOS 13+ Users (Ventura/Sonoma/Sequoia)
+     The script auto-detects your Chrome extension ID and sets everything up.
+     If the extension isn't installed yet, you can paste the ID manually when prompted.
 
-     The easiest way to install is using the included helper script:
+     ### Uninstall
 
-     1. Open Terminal
-     2. `cd Downloads/OpenInDefaultBrowser`
-     3. `./install-app.sh`
-
-     The script will bypass Gatekeeper and launch the app automatically.
-
-     ### Features
-
-     - ✅ Zero dependencies (completely self-contained)
-     - ✅ Automatic Chrome extension detection
-     - ✅ One-click install/uninstall
-     - ✅ Native macOS menu bar app
-     - ✅ Easy installation script for macOS 13+
+     ```bash
+     cd ~/Downloads/OpenInDefaultBrowser-v1.0.0
+     ./uninstall.sh
+     ```
 
      ### Requirements
 
-     - macOS 10.15 or later
-     - Chrome browser with "Open in Default Browser" extension installed from Chrome Web Store
+     - macOS 10.15 (Catalina) or later
+     - Chrome browser with the "Open in Default Browser" extension installed
 
-     ### Note
+     ### What's included in the ZIP
 
-     The app is ad-hoc signed (self-signed). The installer script handles macOS security prompts automatically.
+     | File | Purpose |
+     |------|---------|
+     | `install.sh` | Installs the native messaging host |
+     | `uninstall.sh` | Removes the native messaging host |
+     | `host-binary` | Standalone executable that opens URLs |
+     | `README.txt` | Quick-start instructions |
 
-     For full documentation, see the [README](https://github.com/himanshu-satija/open-in-default-browser/blob/main/README.md).
+     Full documentation: [README](https://github.com/himanshu-satija/open-in-default-browser/blob/main/README.md)
      ```
 
 5. **Upload the ZIP:**
-   - Drag and drop `OpenInDefaultBrowser-v1.0.0.zip` to the release assets section
+   - Drag and drop `OpenInDefaultBrowser-v1.0.0.zip` to the release assets
 
-6. **Publish the release:**
-   - Click "Publish release"
+6. **Publish the release**
+
+---
 
 ## Part 3: Update Extension Listing
 
 After publishing to GitHub:
 
-1. **Get the release URL:**
-   - Copy the URL to your release page
-   - Example: `https://github.com/himanshu-satija/open-in-default-browser/releases`
+1. **Update `README.md`** — add the Chrome Web Store link once approved
+2. **Update Chrome Web Store listing** — add the link to the GitHub releases page
+3. Verify all GitHub URLs are correct
 
-2. **Update Chrome Web Store listing:**
-   - Add link to GitHub releases in the detailed description
-   - Update privacy policy URL to point to your GitHub
-
-3. **Update README.md:**
-   - Add the Chrome Web Store link once approved
-   - Verify all GitHub URLs are correct
+---
 
 ## Version Updates
 
 When releasing a new version:
 
-1. **Update version in `manifest.json`:**
+1. **Update `chrome-extension/manifest.json`:**
    ```json
-   {
-     "version": "1.0.1"
-   }
+   { "version": "1.0.1" }
    ```
 
-2. **Create new extension ZIP:**
+2. **Update `build-release.sh`:**
    ```bash
-   cd chrome-extension
-   zip -r ../open-in-default-browser-extension-v1.0.1.zip *
+   VERSION="1.0.1"
    ```
 
-3. **Upload to Chrome Web Store:**
-   - Go to Developer Dashboard
-   - Click on your extension
-   - Click "Package" → "Upload new package"
-   - Upload the new ZIP
+3. **Build and publish** following Part 2 above.
 
-4. **Create new GitHub release** if companion app changed:
-   - Build new ZIP with updated version number
-   - Follow Part 2 steps with new version number
+---
 
-## Checklist
+## Pre-publication Checklist
 
-Before publishing:
-
-- [ ] All icons are present and correct size
-- [ ] manifest.json has correct version
-- [ ] PRIVACY.md is complete
-- [ ] README.md has no placeholder text
-- [ ] All GitHub usernames are updated
-- [ ] Extension tested and working
-- [ ] Companion app tested on fresh macOS install
-- [ ] install.sh is executable (`chmod +x`)
-- [ ] uninstall.sh is executable (`chmod +x`)
+- [ ] `manifest.json` has the correct version
+- [ ] `PRIVACY.md` is complete
+- [ ] `README.md` has no placeholder text (e.g. Chrome Web Store link)
+- [ ] All GitHub usernames/URLs are correct
+- [ ] Extension tested end-to-end (install → right-click → link opens)
+- [ ] `install.sh` tested on a clean extract (fresh directory, no prior install)
+- [ ] `uninstall.sh` tested
 - [ ] Screenshots prepared for Chrome Web Store
 - [ ] Promotional images created
+
+---
 
 ## Post-Publication
 
 After Chrome Web Store approval:
 
-1. Update README.md with Chrome Web Store link
-2. Create a blog post or announcement (optional)
-3. Share on social media (optional)
-4. Monitor GitHub issues for user feedback
+1. Update `README.md` with the Chrome Web Store link
+2. Share on relevant communities (optional)
+3. Monitor GitHub Issues for user feedback
 
-## Support
+---
 
-For questions about packaging, see:
+## Resources
+
 - [Chrome Web Store Developer Documentation](https://developer.chrome.com/docs/webstore/)
 - [GitHub Releases Documentation](https://docs.github.com/en/repositories/releasing-projects-on-github)
+- [Chrome Native Messaging](https://developer.chrome.com/docs/apps/nativeMessaging/)

@@ -31,41 +31,30 @@ Do you use Chrome for specific apps (like PWAs) but prefer a different browser f
 
 Install from the Chrome Web Store: [Link will be added after publishing]
 
-### Step 2: Install the Companion App
+### Step 2: Install the Native Host
 
-**Important:** This extension requires a companion app to work. This is due to Chrome's security model - extensions cannot directly open links in other browsers.
+**Important:** This extension requires a small native helper to work. Chrome extensions cannot directly open links in other browsers, so a tiny background binary handles this for you — there is no persistent app.
 
 1. **Download `OpenInDefaultBrowser-<latest>.zip`** from the [Releases page](https://github.com/himanshu-satija/open-in-default-browser/releases)
 2. **Double-click to extract** the ZIP file
-3. **Run the installer script**:
-   - Open Terminal (Applications → Utilities → Terminal)
-   - Type: `cd Downloads/OpenInDefaultBrowser`
-   - Type: `./install-app.sh`
-   - Press Enter
-4. **The app will launch automatically** - click "Show Menu" to continue
-5. **Click "Install Native Host"** from the menu
-6. Done! The app will automatically detect your Chrome extension and configure everything.
+3. **Open Terminal** (Applications → Utilities → Terminal)
+4. Type `cd ` (with a space after), then **drag the extracted folder** onto the Terminal window — this pastes the correct path automatically
+5. Press **Enter**, then type `./install.sh` and press **Enter** again
+6. Done! The script detects your Chrome extension automatically and sets everything up.
 
-**Alternative (manual installation)**:
-If you prefer not to use the script, drag the app to Applications, then run:
-```bash
-xattr -d com.apple.quarantine "/Applications/Open in Default Browser.app"
-open "/Applications/Open in Default Browser.app"
-```
-
-**Note:** The app is ad-hoc signed (self-signed) for security. The installer script handles macOS security prompts automatically.
+**That's it** — no app to launch, nothing running in the background.
 
 ## Usage
 
 1. Right-click on any link in Chrome
-2. Select "Open in default browser" from the context menu
+2. Select **"Open in default browser"** from the context menu
 3. The link opens in your system's default browser
 
 ## Requirements
 
-- macOS 10.15 or later
+- macOS 10.15 (Catalina) or later
 - Chrome browser
-- No other dependencies! (The app is completely self-contained)
+- No other dependencies
 
 ## Troubleshooting
 
@@ -75,32 +64,30 @@ open "/Applications/Open in Default Browser.app"
 
 ### Clicking the option does nothing
 
-- Make sure you've installed the companion app and clicked "Install Native Host" in the menu bar
-- Open the companion app from Applications and check if it says "✓ Installed"
-- If not installed, click "Install Native Host" from the menu bar icon
+- Make sure you ran `./install.sh` from the release ZIP
+- Verify the native host is installed:
+  ```bash
+  ls ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/
+  # Should show com.openindefaultbrowser.host.json and open-in-default-browser-host
+  ```
+- If files are missing, re-run `./install.sh`
 - Check the Chrome extension console for errors:
   1. Go to `chrome://extensions/`
-  2. Click "Details" on this extension
-  3. Click "Inspect views: service worker"
+  2. Click **Details** on this extension
+  3. Click **Inspect views: service worker**
   4. Look for error messages
 
-### The companion app says it can't find the Chrome extension
+### The installer says it can't find the Chrome extension
 
-- Make sure the Chrome extension is installed from the Chrome Web Store
-- The extension must be enabled in `chrome://extensions/`
-- Try restarting Chrome and then opening the companion app again
+The installer tries to auto-detect your extension ID. If it can't:
 
-### macOS says the app "cannot be opened" (macOS 13+)
-
-On macOS Ventura (13) and later, you may see "Apple cannot verify..." with no "Open" button.
-
-**Solution**: Use the included `install-app.sh` script (see installation instructions above).
-
-**Alternative (System Settings method)**:
-1. Open System Settings → Privacy & Security
-2. Scroll down to "Security"
-3. Find "Open in Default Browser was blocked"
-4. Click "Open Anyway"
+1. Open `chrome://extensions/` in Chrome
+2. Enable **Developer mode** (toggle in the top-right corner)
+3. Find **Open in Default Browser** and copy its 32-character ID
+4. Re-run the installer and paste the ID when prompted:
+   ```bash
+   ./install.sh YOUR_EXTENSION_ID
+   ```
 
 ### Still having issues?
 
@@ -108,20 +95,16 @@ On macOS Ventura (13) and later, you may see "Apple cannot verify..." with no "O
 
 ## Uninstallation
 
-1. **Uninstall from the companion app:**
+```bash
+cd ~/Downloads/OpenInDefaultBrowser
+./uninstall.sh
+```
 
-   - Open the app from menu bar
-   - Click "Uninstall Native Host"
-   - Quit the app
-   - Delete the app from Applications
-
-2. **Remove the Chrome extension:**
-   - Go to `chrome://extensions/`
-   - Click "Remove" on the extension
+Then remove the Chrome extension at `chrome://extensions/`.
 
 ## Privacy
 
-This extension does **not** collect, store, or transmit any user data. All processing happens locally on your machine. The extension only communicates with the locally-installed companion app to open URLs.
+This extension does **not** collect, store, or transmit any user data. All processing happens locally on your machine. The extension only communicates with the locally-installed native host binary to open URLs.
 
 ## Contributing
 
@@ -135,7 +118,7 @@ See [DEVELOPMENT.md](DEVELOPMENT.md) for development setup instructions.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details
+MIT License — see [LICENSE](LICENSE) file for details
 
 ---
 

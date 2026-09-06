@@ -4,41 +4,32 @@ This guide is for developers who want to contribute to or modify the extension.
 
 ## Architecture
 
-This project consists of three components:
+This project has two components:
 
-1. **Chrome Extension**: Provides the context menu UI in Chrome
-2. **Native Messaging Host**: A Bun-compiled executable that opens URLs using macOS `open` command
-3. **Companion App**: A native macOS menu bar app that manages installation
+1. **Chrome Extension** — provides the context menu UI in Chrome and sends messages via Native Messaging
+2. **Native Messaging Host** — a Bun-compiled standalone executable (`host-binary`) that receives a URL from the extension and opens it with the macOS `open` command
+
+The `install.sh` / `uninstall.sh` scripts register the host binary with Chrome by writing a JSON manifest to `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/`.
 
 ## Project Structure
 
 ```
 ├── chrome-extension/
-│   ├── manifest.json          # Chrome extension manifest (V3)
-│   ├── background.js          # Service worker with context menu & native messaging
-│   ├── icon48.png            # Extension icon (48x48)
-│   └── icon128.png           # Extension icon (128x128)
+│   ├── manifest.json       # Chrome extension manifest (V3)
+│   ├── background.js       # Service worker — context menu & native messaging
+│   ├── icon48.png
+│   └── icon128.png
 │
 ├── native-host/
-│   ├── host.js               # Native messaging host source code
-│   ├── host-binary           # Compiled Bun executable (generated, not in git)
-│   └── README.md             # Native host documentation
+│   ├── host.js             # Native messaging host source code
+│   ├── host-binary         # Compiled Bun executable (generated — not in git)
+│   └── README.md
 │
-├── companion-app/
-│   ├── Sources/
-│   │   ├── main.swift            # App entry point
-│   │   ├── AppDelegate.swift     # Menu bar UI & welcome alert
-│   │   ├── ChromeDetector.swift  # Auto-detects Chrome extension ID
-│   │   ├── InstallManager.swift  # Handles install/uninstall
-│   │   ├── AppIcon.png           # High-res app icon (512x512+)
-│   │   ├── logo-64.png           # Alert dialog icon
-│   │   ├── tray-icon-22.png      # Menu bar icon
-│   │   └── tray-icon-44.png      # Menu bar icon @2x
-│   ├── build.sh              # Builds the .app bundle & generates .icns
-│   ├── create-dmg.sh         # Creates DMG with create-dmg tool
-│   └── build/                # Build output (generated)
-│
-└── README.md                 # User documentation
+├── install.sh              # One-step installer for end users
+├── uninstall.sh            # One-step uninstaller for end users
+├── install-dev.sh          # Developer installer (takes Extension ID as argument)
+├── build-release.sh        # Builds host-binary and creates the release ZIP
+└── README.md               # User documentation
 ```
 
 ## Development Setup
@@ -46,10 +37,10 @@ This project consists of three components:
 ### Prerequisites
 
 - macOS 10.15 or later
-- Xcode Command Line Tools: `xcode-select --install` (includes `sips` and `iconutil` for icon generation)
 - Bun: `curl -fsSL https://bun.sh/install | bash`
 - Chrome browser
-- **For DMG creation**: Homebrew and create-dmg: `brew install create-dmg`
+
+> Xcode Command Line Tools are **not** required for development anymore (Swift is gone).
 
 ### Step 1: Build the Native Host
 
@@ -59,52 +50,27 @@ bun build --compile --minify --sourcemap ./host.js --outfile host-binary
 cd ..
 ```
 
-This creates a standalone 60MB executable with zero dependencies.
+This creates a standalone ~60 MB executable with zero runtime dependencies.
 
-### Step 2: Build the Companion App
+### Step 2: Load the Chrome Extension
+
+1. Open Chrome and go to `chrome://extensions/`
+2. Enable **Developer mode** (toggle in top-right corner)
+3. Click **Load unpacked** and select the `chrome-extension/` folder
+4. **Copy the Extension ID** (32-character string shown under the extension name)
+
+### Step 3: Install the Native Host for Development
+
+Use `install-dev.sh`, which accepts the extension ID as an argument — no Chrome scanning needed:
 
 ```bash
-cd companion-app
-./build.sh
+./install-dev.sh YOUR_EXTENSION_ID
 ```
 
-This compiles the Swift code, generates the app icon from `Sources/AppIcon.png`, and creates `build/Open in Default Browser.app`.
-
-**Icon Generation:**
-The build script automatically:
-- Creates an iconset with all required macOS icon sizes (16x16 to 1024x1024)
-- Uses `sips` to resize `AppIcon.png` to each size
-- Uses `iconutil` to convert the iconset to `AppIcon.icns`
-- Embeds the icon in the app bundle
-
-### Step 3: Load the Chrome Extension
-
-1. Open Chrome and navigate to `chrome://extensions/`
-2. Enable "Developer mode" (toggle in top-right corner)
-3. Click "Load unpacked"
-4. Select the `chrome-extension` folder from this project
-5. **Copy the Extension ID** (32-character string shown under the extension name)
-
-**Note:** When testing with an unpacked extension, use `install-dev.sh` (see Step 4, Option A) instead of the companion app, as the companion app can only detect extensions installed from the Chrome Web Store.
-
-### Step 4: Install Native Host for Development
-
-Choose one of the following options based on your testing needs:
-
-#### Option A: Using install-dev.sh (Recommended for local testing)
-
-This is the easiest way to test with an unpacked extension in developer mode:
-
-1. Get your Extension ID from `chrome://extensions/` (you copied this in Step 3)
-2. Run the installation script:
-   ```bash
-   ./install-dev.sh YOUR_EXTENSION_ID
-   ```
-3. The script will:
-   - Validate the extension ID format
-   - Copy the native host binary to the correct location
-   - Create the native messaging manifest with your extension ID
-   - Set proper permissions
+The script:
+- Copies `native-host/host-binary` to `~/Library/Application Support/Google/Chrome/NativeMessagingHosts/`
+- Writes the JSON manifest with your extension ID in `allowed_origins`
+- Sets correct permissions
 
 **To uninstall:**
 ```bash
@@ -112,321 +78,147 @@ rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/open-in-def
 rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
 ```
 
-#### Option B: Using Companion App (For testing production flow)
-
-If you want to test the full production installation experience:
-
-1. **Note:** This only works with extensions installed from the Chrome Web Store, not unpacked extensions
-2. Launch the app: `open "companion-app/build/Open in Default Browser.app"`
-3. A welcome alert will appear - click "Show Menu"
-4. Click "Install Native Host" from the menu bar
-5. The app will automatically detect your Chrome extension and set everything up
-
-### Step 5: Test
+### Step 4: Test
 
 1. Open any webpage with links in Chrome
-2. Right-click on a link
-3. Select "Open in default browser"
+2. Right-click a link
+3. Select **"Open in default browser"**
 4. The link should open in your system's default browser
+
+---
 
 ## Making Changes
 
-### Modifying the Chrome Extension
+### Chrome Extension
 
 1. Edit files in `chrome-extension/`
 2. Go to `chrome://extensions/` and click the refresh icon on the extension
-3. Test your changes
+3. Test immediately — no reinstall needed
 
-### Modifying the Native Host
+### Native Host
 
 1. Edit `native-host/host.js`
-2. Rebuild the binary:
+2. Rebuild:
    ```bash
    cd native-host
    bun build --compile --minify --sourcemap ./host.js --outfile host-binary
    cd ..
    ```
 3. Reinstall:
-   - **If using install-dev.sh:** Run `./install-dev.sh YOUR_EXTENSION_ID`
-   - **If testing companion app:** Rebuild it with `cd companion-app && ./build.sh` and reinstall using the app
-
-### Modifying the Companion App
-
-1. Edit Swift files in `companion-app/Sources/`
-2. Rebuild:
-   ```bash
-   cd companion-app
-   ./build.sh
-   ```
-3. Test: `open "build/Open in Default Browser.app"`
-
-## Testing
-
-### Test the Full Extension Flow
-
-This is the recommended way to test the complete functionality:
-
-1. **Build the native host** (if not already built):
-   ```bash
-   cd native-host
-   bun build --compile --minify --sourcemap ./host.js --outfile host-binary
-   cd ..
-   ```
-
-2. **Load extension in Chrome:**
-   - Open `chrome://extensions/`
-   - Enable "Developer mode"
-   - Click "Load unpacked" and select `chrome-extension` folder
-   - Copy the Extension ID
-
-3. **Install native host:**
    ```bash
    ./install-dev.sh YOUR_EXTENSION_ID
    ```
 
-4. **Test it:**
-   - Open any webpage in Chrome
-   - Right-click on a link
-   - Select "Open in default browser"
-   - Verify the URL opens in your default browser
+---
+
+## Testing
+
+### Full Flow Test
+
+```bash
+# 1. Build the native host
+cd native-host && bun build --compile --minify ./host.js --outfile host-binary && cd ..
+
+# 2. Install (with your Extension ID from chrome://extensions/)
+./install-dev.sh YOUR_EXTENSION_ID
+
+# 3. Right-click a link in Chrome and test!
+```
 
 ### Test the Native Host Directly
 
 ```bash
-echo '{"url":"https://example.com"}' | ~/.asdf/installs/nodejs/24.4.1/bin/node -e '
-const msg = require("fs").readFileSync(0, "utf-8");
-const msgBuf = Buffer.from(msg);
-const header = Buffer.alloc(4);
-header.writeUInt32LE(msgBuf.length, 0);
-process.stdout.write(header);
-process.stdout.write(msgBuf);
-' | ./native-host/host-binary
+# Send a test message in Chrome's native messaging wire format
+node -e "
+const msg = JSON.stringify({url:'https://example.com'});
+const buf = Buffer.from(msg);
+const hdr = Buffer.alloc(4);
+hdr.writeUInt32LE(buf.length, 0);
+process.stdout.write(hdr);
+process.stdout.write(buf);
+" | ./native-host/host-binary
 ```
 
 Should return `{"success":true}` and open example.com in your default browser.
 
-### Test Chrome Extension Detection
-
-```bash
-# Run this Swift snippet to test auto-detection
-swift -e '
-import Foundation
-
-let detector = ChromeDetector()
-if let id = detector.detectExtensionID() {
-    print("Found extension: \(id)")
-} else {
-    print("Extension not found")
-}
-'
-```
-
-## Development Workflow
-
-For iterative development and testing:
-
-### Making Changes to the Extension
-
-1. **Edit** files in `chrome-extension/` (e.g., `background.js`, `manifest.json`)
-2. **Reload** the extension:
-   - Go to `chrome://extensions/`
-   - Click the reload icon on "Open in Default Browser"
-3. **Test** immediately - no reinstallation needed
-
-### Making Changes to the Native Host
-
-1. **Edit** `native-host/host.js`
-2. **Rebuild** the binary:
-   ```bash
-   cd native-host
-   bun build --compile --minify --sourcemap ./host.js --outfile host-binary
-   cd ..
-   ```
-3. **Reinstall** the host:
-   ```bash
-   ./install-dev.sh YOUR_EXTENSION_ID
-   ```
-   (This copies the new binary to the correct location)
-4. **Test** your changes
-
-### Tips for Faster Iteration
-
-- **Keep your Extension ID handy** - save it in a file or shell variable:
-  ```bash
-  EXTENSION_ID="abcdefghijklmnopqrstuvwxyz123456"
-  ./install-dev.sh $EXTENSION_ID
-  ```
-
-- **Restart Chrome** if the extension seems stuck or not responding to changes
-
-- **Check Chrome's extension logs** for errors:
-  - Go to `chrome://extensions/`
-  - Click "Inspect views: service worker" under your extension
-  - Check the console for errors
-
-- **Test native host directly** to debug native messaging issues (see "Test the Native Host Directly" section)
-
 ### Quick Reinstall
 
-If you need to completely reinstall:
-
 ```bash
-# Uninstall
-rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/open-in-default-browser-host
-rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
-
-# Reinstall
+# Wipe and reinstall
+rm -f ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/open-in-default-browser-host
+rm -f ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
 ./install-dev.sh YOUR_EXTENSION_ID
 ```
 
+---
+
 ## Troubleshooting
 
-### Build Errors
+### "bun: command not found"
 
-**"swiftc: command not found"**
-- Install Xcode Command Line Tools: `xcode-select --install`
+```bash
+curl -fsSL https://bun.sh/install | bash
+exec /bin/zsh  # or restart terminal
+```
 
-**"bun: command not found"**
-- Install Bun: `curl -fsSL https://bun.sh/install | bash`
-- Restart terminal or run: `exec /bin/zsh`
+### Extension ID must be exactly 32 characters
 
-**"host-binary not found"**
-- Build the native host first: `cd native-host && bun build --compile ./host.js --outfile host-binary`
+Make sure you copied the full ID from `chrome://extensions/`. It looks like `abcdefghijklmnopqrstuvwxyz123456`.
 
-**"Extension ID should be exactly 32 characters long"** (when running install-dev.sh)
-- Make sure you copied the full Extension ID from `chrome://extensions/`
-- The ID should look like: `abcdefghijklmnopqrstuvwxyz123456`
-- Don't include quotes or extra spaces
+### Extension not working after reinstall
 
-### Extension Not Working
-
-1. **Check Chrome extension console:**
-   - Go to `chrome://extensions/`
-   - Click "Details" on the extension
-   - Click "Inspect views: service worker"
-   - Look for error messages
-
-2. **Verify native host is installed:**
-   ```bash
-   ls -la ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/
-   # Should show com.openindefaultbrowser.host.json and open-in-default-browser-host
-   ```
-   - If files are missing, reinstall: `./install-dev.sh YOUR_EXTENSION_ID`
-
-3. **Check manifest file has correct extension ID:**
+1. Check the manifest has the right extension ID:
    ```bash
    cat ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
    ```
-   - The `allowed_origins` should match your extension ID
-   - If incorrect, reinstall with the correct ID
+2. Check `allowed_origins` matches your extension ID exactly.
+3. Reload the extension at `chrome://extensions/`.
+4. Inspect the service worker console for error messages.
 
-4. **Verify companion app installed correctly** (if using companion app instead of install-dev.sh):
-   - Open the app and check it says "✓ Installed"
-   - If not, click "Install Native Host" again
-   - If install fails, check if the Chrome extension was detected:
-     - The app should show an error if extension isn't found
-     - Make sure the extension is loaded and enabled in Chrome
-     - Note: Companion app only works with Web Store extensions, not unpacked ones
-
-**Testing the welcome alert:**
-- The welcome message only shows on first launch
-- To reset and see it again: `defaults delete com.himanshu-satija.open-in-default-browser hasShownWelcome`
-
-5. **Try reinstalling:**
-   - **If using install-dev.sh:**
-     ```bash
-     # Uninstall
-     rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/open-in-default-browser-host
-     rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
-     # Reinstall
-     ./install-dev.sh YOUR_EXTENSION_ID
-     ```
-   - **If using companion app:**
-     - Click "Uninstall" in the companion app
-     - Quit and relaunch the companion app
-     - Click "Install" again
+---
 
 ## Architecture Details
 
 ### Native Messaging Protocol
 
-Chrome's native messaging uses a specific protocol:
-- Messages are prefixed with a 4-byte length (little-endian)
-- The length indicates the size of the JSON message that follows
-- The native host reads from stdin and writes to stdout
-- The connection is one message per process (host exits after handling)
+Chrome's native messaging uses a simple length-prefixed format:
+- 4-byte little-endian integer → length of the JSON payload
+- Followed by the JSON message itself
+- One message per process invocation; the host exits after responding
 
-### Companion App Flow
+### Extension ID Detection in `install.sh`
 
-1. **Welcome alert**: On first launch, shows a welcome message and opens the menu
-2. **Auto-detection**: Scans `~/Library/Application Support/Google/Chrome/*/Extensions/`
-3. **Finds extension**: Matches by name "Open in Default Browser"
-4. **Copies binary**: From app bundle to permanent location
-5. **Creates manifest**: With detected extension ID and binary path
-6. **Installs**: Copies manifest to Chrome's NativeMessagingHosts directory
+For end-user installs (where the extension is already in the Chrome Web Store):
+
+1. **Python 3 path**: Parses `Secure Preferences` and `Preferences` JSON across all Chrome profiles. Unpacked extension paths are resolved by reading `manifest.json` from disk.
+2. **Bash fallback**: Uses `grep` on the same preference files — no Python required.
+3. **Manual fallback**: Prompts the user to enter the ID from `chrome://extensions/`.
 
 ### Why Bun?
 
-- **No dependencies**: Creates standalone executable
-- **Small footprint**: Better than Node.js + node_modules
-- **Fast startup**: Important for native messaging
-- **Easy distribution**: Single binary file
+- Creates a true standalone executable (no Node.js/npm on the user's machine needed)
+- Fast startup — important for native messaging (each link click spawns a new process)
+- Single binary makes distribution simple
+
+---
 
 ## Creating a Release
 
-1. **Update version numbers:**
-   - `chrome-extension/manifest.json`
-   - `companion-app/build.sh` (Info.plist)
-   - `companion-app/create-dmg.sh` (DMG_NAME)
+```bash
+./build-release.sh
+```
 
-2. **Prerequisites:**
-   - Ensure `create-dmg` is installed: `brew install create-dmg`
-   - Verify `AppIcon.png` exists in `companion-app/Sources/`
+This builds `host-binary` with Bun and packages `install.sh`, `uninstall.sh`, `host-binary`, and `README.txt` into `OpenInDefaultBrowser-v1.0.0.zip`.
 
-3. **Build everything:**
-   ```bash
-   # Build native host
-   cd native-host
-   bun build --compile --minify --sourcemap ./host.js --outfile host-binary
-   cd ..
+See [PACKAGING.md](PACKAGING.md) for the full release checklist.
 
-   # Build companion app (generates icon automatically)
-   cd companion-app
-   ./build.sh
-   ./create-dmg.sh
-   cd ..
-   ```
-
-4. **Test the DMG:**
-   - Mount the DMG
-   - Verify custom background with arrow appears
-   - Verify app icon is visible in Finder
-   - Drag app to Applications folder
-   - Test install/uninstall
-   - Test with Chrome extension
-
-5. **Create GitHub release:**
-   - Tag: `v1.0.x`
-   - Upload the DMG
-   - Include release notes
-
-6. **Submit to Chrome Web Store:**
-   - Package extension: `cd chrome-extension && zip -r ../extension.zip *`
-   - Upload to Chrome Web Store Developer Dashboard
-   - Wait for review
+---
 
 ## Code Style
 
-### Swift
-- Follow standard Swift naming conventions
-- Use clear, descriptive names
-- Add comments for complex logic
-- Keep functions focused and small
-
 ### JavaScript
-- Use modern ES6+ syntax
-- Follow standard JavaScript style
-- Add JSDoc comments for public functions
+- Modern ES6+ syntax
+- JSDoc comments for public functions
 - Handle errors gracefully
 
 ## Contributing
@@ -434,7 +226,7 @@ Chrome's native messaging uses a specific protocol:
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
 3. Make your changes
-4. Test thoroughly on a clean macOS install
+4. Test on a clean macOS install
 5. Update documentation if needed
 6. Submit a pull request
 
@@ -443,4 +235,3 @@ Chrome's native messaging uses a specific protocol:
 - [Chrome Native Messaging](https://developer.chrome.com/docs/apps/nativeMessaging/)
 - [Chrome Extension Development](https://developer.chrome.com/docs/extensions/)
 - [Bun Documentation](https://bun.sh/docs)
-- [Swift Documentation](https://www.swift.org/documentation/)

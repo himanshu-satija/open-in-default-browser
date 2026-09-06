@@ -80,16 +80,13 @@ Chrome's native messaging protocol:
 - The message body is JSON
 - Communication happens over stdin/stdout
 
-## Integration
+## Distribution
 
-The compiled `host-binary` is bundled inside the companion app at:
-```
-Open in Default Browser.app/Contents/Resources/host-binary
-```
+The compiled `host-binary` is bundled in the release ZIP (`OpenInDefaultBrowser-vX.X.X.zip`) alongside `install.sh` and `uninstall.sh`.
 
-The companion app copies it to:
+The `install.sh` script copies it to:
 ```
 ~/Library/Application Support/Google/Chrome/NativeMessagingHosts/open-in-default-browser-host
 ```
 
-And creates a manifest file that points to this location.
+And creates a manifest file (`com.openindefaultbrowser.host.json`) in the same directory that points to this location.

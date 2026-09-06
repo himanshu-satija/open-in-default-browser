@@ -1,6 +1,6 @@
 # Privacy Policy for Open in Default Browser
 
-**Last Updated:** January 2026
+**Last Updated:** August 2026
 
 ## Overview
 
@@ -24,8 +24,8 @@ Specifically:
 1. When you right-click on a link and select "Open in default browser", the extension:
 
    - Receives the URL of the link you clicked
-   - Sends the URL to a locally-installed companion app on your computer
-   - The companion app opens the URL in your system's default browser
+   - Sends the URL to a locally-installed native host binary on your computer
+   - The native host opens the URL in your system's default browser using the macOS `open` command
 
 2. All processing happens locally on your machine
 3. No data ever leaves your computer to external servers
@@ -42,13 +42,13 @@ The extension requests the following permissions:
 
 ### nativeMessaging
 
-- **Purpose:** To communicate with the locally-installed companion app that opens URLs in your default browser
-- **Data Access:** The extension only sends URLs to the local companion app. No data is sent to external servers.
+- **Purpose:** To communicate with the locally-installed native host binary that opens URLs in your default browser
+- **Data Access:** The extension only sends URLs to the local native host. No data is sent to external servers.
 
 ### notifications
 
-- **Purpose:** To display error messages when something goes wrong (e.g., companion app not installed)
-- **Data Access:** None. Notifications only display locally on your computer and are not sent anywhere.
+- **Purpose:** To display error messages when something goes wrong (e.g., native host not installed)
+- **Data Access:** None. Notifications only display locally on your computer.
 
 ## Third-Party Services
 
@@ -60,7 +60,7 @@ This extension does not store any data locally or remotely.
 
 ## Changes to URLs
 
-The extension does not modify, log, or store any URLs. It simply passes them to the local companion app for opening in your default browser.
+The extension does not modify, log, or store any URLs. It simply passes them to the local native host binary for opening in your default browser.
 
 ## Children's Privacy
 
