@@ -21,14 +21,23 @@ The `install.sh` / `uninstall.sh` scripts register the host binary with Chrome b
 │   └── icon128.png
 │
 ├── native-host/
-│   ├── host.js             # Native messaging host source code
+│   ├── host.js             # Native messaging host entry point
+│   ├── protocol.js         # Protocol encoding/decoding (shared with tests)
+│   ├── protocol.test.js    # Unit tests for protocol module
 │   ├── host-binary         # Compiled Bun executable (generated — not in git)
 │   └── README.md
+│
+├── tests/
+│   ├── integration/
+│   │   └── native-host.test.js   # Integration tests (pipes data through host-binary)
+│   └── smoke/
+│       └── install-scripts.test.sh  # Install/uninstall script smoke tests
 │
 ├── install.sh              # One-step installer for end users
 ├── uninstall.sh            # One-step uninstaller for end users
 ├── install-dev.sh          # Developer installer (takes Extension ID as argument)
 ├── build-release.sh        # Builds host-binary and creates the release ZIP
+├── package.json            # Test scripts (bun test)
 └── README.md               # User documentation
 ```
 
@@ -113,11 +122,63 @@ rm ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openind
 
 ## Testing
 
-### Full Flow Test
+The project has three layers of automated tests. All JS tests use Bun's built-in test runner.
+
+### Quick Reference
+
+```bash
+# Unit tests only (fast, no side effects)
+bun test native-host/protocol.test.js
+
+# Integration tests (requires host-binary; will open a browser tab)
+bun test tests/integration/
+
+# Install script smoke tests
+bash tests/smoke/install-scripts.test.sh
+
+# Run everything
+bun run test:all
+```
+
+### Unit Tests — `native-host/protocol.test.js`
+
+Tests the native messaging protocol module (`protocol.js`):
+- Message encoding (JS object → length-prefixed binary)
+- Message decoding (binary → JS object)
+- Round-trip encode/decode consistency
+- URL extraction and validation (scheme checking, edge cases)
+
+These are pure-function tests with zero side effects — safe to run anywhere.
+
+### Integration Tests — `tests/integration/native-host.test.js`
+
+Pipes real native-messaging payloads through the compiled `host-binary` and verifies responses:
+- Valid URL → `{success: true}` + opens in default browser
+- Missing URL → `{success: false}` with error
+- Invalid scheme → `{success: false}` with error
+
+**Requires** `host-binary` to be built first.
+**Note:** The valid-URL test will actually open a browser tab.
+
+### Smoke Tests — `tests/smoke/install-scripts.test.sh`
+
+Verifies that `install.sh` and `uninstall.sh` work correctly:
+- Creates host binary and manifest in the right locations
+- Sets correct file permissions
+- Manifest contains valid JSON with expected fields
+- `uninstall.sh` removes all files
+- `uninstall.sh` is idempotent (safe to run twice)
+- `install.sh` rejects invalid extension IDs
+
+Creates a temporary staging directory that mirrors the release ZIP layout, then cleans up after itself.
+
+### Manual Flow Test
+
+For a full end-to-end test that includes the Chrome extension UI:
 
 ```bash
 # 1. Build the native host
-cd native-host && bun build --compile --minify ./host.js --outfile host-binary && cd ..
+cd native-host && bun build --compile --minify --sourcemap ./host.js --outfile host-binary && cd ..
 
 # 2. Install (with your Extension ID from chrome://extensions/)
 ./install-dev.sh YOUR_EXTENSION_ID
@@ -140,15 +201,6 @@ process.stdout.write(buf);
 ```
 
 Should return `{"success":true}` and open example.com in your default browser.
-
-### Quick Reinstall
-
-```bash
-# Wipe and reinstall
-rm -f ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/open-in-default-browser-host
-rm -f ~/Library/Application\ Support/Google/Chrome/NativeMessagingHosts/com.openindefaultbrowser.host.json
-./install-dev.sh YOUR_EXTENSION_ID
-```
 
 ---
 
@@ -226,9 +278,10 @@ See [PACKAGING.md](PACKAGING.md) for the full release checklist.
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/my-feature`
 3. Make your changes
-4. Test on a clean macOS install
-5. Update documentation if needed
-6. Submit a pull request
+4. Run tests: `bun run test:all`
+5. Test on a clean macOS install
+6. Update documentation if needed
+7. Submit a pull request
 
 ## Resources
 

@@ -98,14 +98,23 @@ The primary use case that inspired this extension:
 │   └── icon*.png
 │
 ├── native-host/              # Native messaging host
-│   ├── host.js              # Source code
+│   ├── host.js              # Entry point
+│   ├── protocol.js          # Protocol encoding/decoding (shared with tests)
+│   ├── protocol.test.js     # Unit tests
 │   ├── host-binary          # Compiled executable (generated — not in git)
 │   └── README.md
+│
+├── tests/
+│   ├── integration/
+│   │   └── native-host.test.js   # Integration tests
+│   └── smoke/
+│       └── install-scripts.test.sh  # Install/uninstall smoke tests
 │
 ├── install.sh                # One-step installer for end users
 ├── uninstall.sh              # One-step uninstaller for end users
 ├── install-dev.sh            # Developer installer (takes Extension ID as argument)
 ├── build-release.sh          # Builds host-binary and creates the release ZIP
+├── package.json              # Test scripts (bun test)
 ├── README.md                 # User documentation
 ├── DEVELOPMENT.md            # Developer guide
 ├── PACKAGING.md              # Release instructions

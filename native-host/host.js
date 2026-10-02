@@ -1,17 +1,19 @@
 #!/usr/bin/env bun
 
-// Send a message to stdout using Chrome's native messaging protocol
-function sendMessage(message) {
-  const messageStr = JSON.stringify(message);
-  const messageBuffer = Buffer.from(messageStr);
-  const header = Buffer.alloc(4);
-  header.writeUInt32LE(messageBuffer.length, 0);
+import { encodeMessage, extractUrl } from './protocol.js';
 
-  process.stdout.write(header);
-  process.stdout.write(messageBuffer);
+/**
+ * Send a message to stdout using Chrome's native messaging protocol.
+ * @param {object} message
+ */
+function sendMessage(message) {
+  process.stdout.write(encodeMessage(message));
 }
 
-// Read a message from stdin using Chrome's native messaging protocol
+/**
+ * Read a message from stdin using Chrome's native messaging protocol.
+ * @returns {Promise<object>}
+ */
 function readMessage() {
   return new Promise((resolve, reject) => {
     let headerBuffer = Buffer.alloc(0);
@@ -58,26 +60,27 @@ async function main() {
   try {
     // Read message from Chrome extension
     const message = await readMessage();
+    const result = extractUrl(message);
 
-    if (message?.url) {
-      // Open URL in default browser using Bun.spawn
-      const proc = Bun.spawn(['open', message.url], {
-        stdout: 'ignore',
-        stderr: 'pipe',
-      });
+    if ('error' in result) {
+      sendMessage({ success: false, error: result.error });
+      process.exit(1);
+    }
 
-      const exitCode = await proc.exited;
+    // Open URL in default browser using Bun.spawn
+    const proc = Bun.spawn(['open', result.url], {
+      stdout: 'ignore',
+      stderr: 'pipe',
+    });
 
-      if (exitCode === 0) {
-        sendMessage({ success: true });
-        process.exit(0);
-      } else {
-        const errorText = await new Response(proc.stderr).text();
-        sendMessage({ success: false, error: errorText || 'Failed to open URL' });
-        process.exit(1);
-      }
+    const exitCode = await proc.exited;
+
+    if (exitCode === 0) {
+      sendMessage({ success: true });
+      process.exit(0);
     } else {
-      sendMessage({ success: false, error: 'No URL provided' });
+      const errorText = await new Response(proc.stderr).text();
+      sendMessage({ success: false, error: errorText || 'Failed to open URL' });
       process.exit(1);
     }
   } catch (error) {

@@ -1,0 +1,10 @@
+{
+  "name": "open-in-default-browser",
+  "private": true,
+  "scripts": {
+    "test": "bun test native-host/protocol.test.js",
+    "test:integration": "bun test tests/integration/",
+    "test:smoke": "bash tests/smoke/install-scripts.test.sh",
+    "test:all": "bun test native-host/protocol.test.js && bun test tests/integration/ && bash tests/smoke/install-scripts.test.sh"
+  }
+}
